@@ -1,78 +1,64 @@
 # Home controls dashboard
 
-This YAML dashboard uses the six primary controls provided by the user on 14 October 2026: three air conditioners, garage lights, the geyser, and the pool switch. It uses built-in cards and requires no custom frontend installation.
+The dashboard controls three air conditioners, garage lights, the geyser and the pool. It also shows combined solar readings, aircon room temperatures, and power/daily energy for the pool and geyser. It uses built-in Home Assistant cards.
 
-The three switches have explicit on/off controls. The thermostat cards provide temperature controls and a mode dropdown that uses each air conditioner's supported modes, including off when supported. Inverter configuration switches and aircon display/sound settings are omitted from this everyday view.
+## Layout and controls
 
-## Deployment
+The Devices tab provides room controls and statistics at every screen size. The Floor plan tab adapts to the screen:
 
-1. Compare the live NAS configuration.yaml with the local version before replacing it. Preserve any newer server edits and merge the lovelace dashboard registration if needed.
-2. Review and commit the branch, then run:
+- At 1280px and above, it shows the vector plan with live overlays.
+- Below 1280px, it shows readable control tiles and statistics, followed by a plan that opens at full size when tapped. It does not compress fixed-size overlay text and controls onto a phone.
+
+Switch icons are gold when on, grey when off, and red for unknown/unavailable states. On/off icons toggle the switch; red icons open details. Both garage-light icons operate the same switch. Pool and geyser have static labels; only the garage controls retain separate state badges. Aircon icons open their controls; temperature badges show the aircon's current_temperature in Celsius, not its target setting.
+
+The plan at `/local/floorplans/house-clean.svg` is a simplified redraw of the supplied layout, including the user's room and door corrections. It is a visual dashboard background, not a measured architectural drawing. The main-bedroom door is hinged at the top of its corridor-facing opening so its leaf does not cross the neighboring doorway.
+
+## Solar and device measurements
+
+Solar now shows generation, house usage, battery SOC, battery flow and grid flow. Solar today shows generation, house usage, grid import/export and battery charge/discharge. Existing combined-system sensors provide the totals; the dashboard does not sum them again.
+
+The new `sensor.home_dashboard_battery_flow` and `sensor.home_dashboard_grid_flow` interpret the same sign conventions as the existing Sunsynk flow card: battery negative means charging, battery positive means discharging; grid positive means importing, grid negative means exporting. Zero is Idle. Invalid or missing input makes the derived sensor unavailable. Magnitudes at or above 1000 W display in kW. Numeric power remains available on Devices.
+
+Pool power uses `sensor.pool_power`; pool daily energy reuses `sensor.solar_pool_energy_today`, defined by the existing solar_controller package. Cumulative pool energy is not shown as a daily total.
+
+`packages/dashboard_energy.yaml` creates `sensor.geyser_energy_today` from `sensor.geyser_total_energy`. Its first day is partial, and usage before activation is not reconstructed. Verify that the total-energy source increases when the geyser consumes energy: its exported reading was zero. Verify the three newly created sensor IDs after deployment.
+
+## Prepare and deploy
+
+1. Compare the current NAS configuration.yaml with the local version and preserve any newer server changes. Make dated backups of all destination files being replaced.
+2. Review and commit the branch. Prepare a fresh payload from the intended commit:
 
 ```sh
-python3 tools/prepare_deployment.py configuration.yaml dashboards/home-controls.yaml www/floorplans/house-clean.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/solar-panel.svg www/floorplans/pool-stats.svg www/floorplans/geyser-stats.svg packages/dashboard_energy.yaml
+python3 tools/prepare_deployment.py \
+  configuration.yaml \
+  dashboards/home-controls.yaml \
+  packages/dashboard_energy.yaml \
+  www/floorplans/house-clean.svg \
+  www/floorplans/solar-panel.svg \
+  www/floorplans/pool-stats.svg \
+  www/floorplans/geyser-stats.svg
 ```
 
-3. Back up the existing NAS configuration.yaml. If a dashboard file already exists at the destination, back it up too.
-4. Copy only the prepared configuration.yaml, dashboards/home-controls.yaml, www/floorplans/house-clean.svg, www/floorplans/solar-panel.svg, www/floorplans/pool-stats.svg, www/floorplans/geyser-stats.svg, and packages/dashboard_energy.yaml to matching locations inside Shared folder/HomeAssistant. Create the dashboards folder if needed. Do not replace or mirror the full HomeAssistant folder.
-5. Run Home Assistant's configuration check. If it succeeds, restart through the Home Assistant UI.
-6. Open Home controls from the sidebar, or http://holtz-storage.local:8123/home-controls/devices. Confirm that all six cards resolve and show the correct devices. Test intended switch and climate changes when appropriate and verify the actual devices respond.
-7. Record the verified deployment commit and tag it.
+3. Immediately before copying, run the verification command printed by the tool:
 
-The local YAML has been checked for syntax and entity references. Rendering and device behavior still require verification on the running Home Assistant instance.
+```sh
+python3 tools/prepare_deployment.py --verify .deploy/<timestamp>
+```
 
-## Floor-plan view
+Verification checks that the source files and staged payload match the manifest, and refuses unlisted files. If configuration has changed since preparation, generate a new payload. The manifest records the Git commit at preparation; it is a local audit record, not a NAS upload.
 
-The Floor plan tab uses a simplified vector redraw based on the user's drawing at www/floorplans/house-clean.svg and built-in Picture Elements controls. It shows the three bedroom aircons, the pool switch, the roof geyser above BAD KR, and two garage-light icons outside either side of the garage door. Both garage icons control switch.garage_ligte_switch_1 because the user confirmed the lights turn on together. Tap an aircon to open its controls; tap a switch to toggle it. Hold any icon to open details. State coloring is handled by Home Assistant.
+4. Copy only the seven listed files from the payload's HomeAssistant folder into matching paths in Shared folder/HomeAssistant. Create subfolders as needed. Do not replace or mirror the whole configuration folder, and do not copy manifest.json into Home Assistant.
+5. Run Home Assistant's configuration check. If it passes, restart through the Home Assistant UI.
+6. Open Home controls in the sidebar or http://holtz-storage.local:8123/home-controls/devices. Verify all controls and readings, both garage icons, the new sensor IDs, phone and desktop layouts, and the displayed power directions against the inverter.
+7. Record the result and tag the verified deployment commit. If it fails, restore the backed-up files and restart.
 
-The original supplied drawing remains in the local /tmp preparation bundle as a reference. The deployed plan is a simplified visual layout, with survey annotations removed and margins cropped; it is not a measured architectural drawing. Device positions are percentages of its width and height; aircon icons are positioned in their rooms rather than claiming exact mounting positions. The geyser and garage-light placements follow the user's descriptions. Fine-tune icon positions after viewing the dashboard on the intended screen.
-
-Check the Floor plan tab after deployment. Verify the image loads and icons align in both desktop and phone layouts. The www image URL is /local/floorplans/house.png. Static www assets can be served without authentication, so do not add secrets or security details to the image.
-
-The pool entity currently has no assigned Home Assistant area; it is included explicitly here. New devices do not appear automatically in this curated YAML dashboard.
+No database, runtime storage, secrets, logs or caches are deployed. Utility-meter state belongs to the running Home Assistant instance and must be preserved. Local checks do not replace validation and device testing on the NAS.
 
 ## References
 
 - https://www.home-assistant.io/dashboards/dashboards/
-- https://www.home-assistant.io/dashboards/sections/
-- https://www.home-assistant.io/dashboards/tile/
-- https://www.home-assistant.io/dashboards/thermostat/
-- https://www.home-assistant.io/dashboards/features/
-
-## Room temperatures and combined solar
-
-Each aircon has a Celsius label bound to its current_temperature attribute. These are the temperatures reported by the aircons, not their target settings or independent room sensors. The user confirmed readings of 20°C, 20°C and 21°C during setup.
-
-The central panel sits below the house outline and uses eleven existing combined-system sensors. The live readings are PV total power, load total power, battery SOC, battery power and grid power. The Today section shows solar generation, house usage, grid import/export and battery charge/discharge in kWh. It reuses the integration's combined readings without calculating additional sums. AC output and rated inverter power are omitted. Direction sensors interpret the same signs as the existing Sunsynk flow dashboard: battery negative means charging and positive means discharging; grid positive means importing and negative means exporting. Invalid source readings make the derived sensors unavailable. Numeric power remains visible in the Devices tab.
-
-A small SVG supplies only the panel background and headings; the values are live Home Assistant state labels. The same readings appear as tiles in the Devices view for small screens. Units and unavailable readings are displayed by Home Assistant. Tap a reading for its details.
-
-The standalone HTML preview uses the user's exported sample readings; it has no live connection to Home Assistant. Verify the live labels, units, unavailable-state behavior and layout after deployment.
-
+- https://www.home-assistant.io/dashboards/conditional/
 - https://www.home-assistant.io/dashboards/picture-elements/
-
-Daniël's floor-plan control is on the right of its room-temperature badge to keep both clear of the room boundary.
-
-## Pool and geyser stats
-
-The floor plan and Devices tab show power now (W) and energy today (kWh) for both devices. Pool power uses sensor.pool_power; pool daily energy reuses sensor.solar_pool_energy_today already defined by solar_controller.yaml. Pool readings in the static preview are 0 W and 5.581 kWh from the user's export. The cumulative sensor.pool_total_energy is not labeled as daily consumption.
-
-The new packages/dashboard_energy.yaml creates a daily utility meter from sensor.geyser_total_energy. The dashboard expects sensor.geyser_energy_today. Verify that entity ID after deployment; the exported inventory did not contain a pre-existing geyser daily meter. The preview displays a dash for the new meter because it has no live value yet.
-
-The first daily cycle is incomplete. Usage before activation is not reconstructed; the first full daily cycle starts at the next local midnight. Home Assistant persists meter state across restarts; routine deployment must not replace its runtime storage. Verify the source sensor actually increases when the geyser consumes energy, since the provided total-energy reading was zero.
-
-Pool stats sit below the pool outline. Geyser stats sit above its roof control so they do not obscure the bathroom. The exported current and voltage sensors remain available in Home Assistant but are omitted from this compact summary. No switch-control automations are added.
-
-Reference: https://www.home-assistant.io/integrations/utility_meter/
-
-Pool and geyser power/daily readings share a single box per device with a small heading. The solar panel has a pale yellow background. The SVG assets are static backgrounds; Home Assistant overlays live sensor readings.
-
-## Final usability refinements
-
-Switch controls show gold backgrounds when on, grey when off, and red for other states such as unknown/unavailable. State labels show the actual switch state independently of power consumption. Both garage-light controls still target the same switch. Aircon controls and their temperature badges are raised slightly to clear the bedroom walls.
-
-The two new template sensors, sensor.home_dashboard_battery_flow and sensor.home_dashboard_grid_flow, show direction and magnitude. Values at or above 1000 W are formatted in kW. Zero reports Idle; invalid or missing input is unavailable. The sign conventions match the bundled flow card's non-inverted defaults and the existing dashboard's configuration. Verify the new sensors and direction against the inverter display after deployment.
-
-The standalone preview provides demonstration toggles only. Its initial switch status is Unknown because actual switch states were not exported. Clicking either garage icon updates both preview icons together. Actual Home Assistant controls use live states and actions.
-
-Sign reference: https://github.com/slipx06/sunsynk-power-flow-card/blob/main/docs/configuration.md
+- https://www.home-assistant.io/dashboards/picture/
+- https://www.home-assistant.io/integrations/utility_meter/
+- https://github.com/slipx06/sunsynk-power-flow-card/blob/main/docs/configuration.md

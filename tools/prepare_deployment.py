@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 
 
@@ -40,10 +41,51 @@ def source_file(name):
     return relative, source
 
 
+def verify_deployment(directory):
+    """Reject a stale or altered payload before the user copies it to the NAS."""
+    directory = directory.resolve()
+    if not directory.is_relative_to((ROOT / ".deploy").resolve()):
+        raise ValueError("Deployment must be inside this workspace's .deploy/ folder")
+    manifest = json.loads((directory / "manifest.json").read_text())
+    if manifest.get("deletions"):
+        raise ValueError("Automatic server deletions are forbidden")
+    files = manifest.get("files", [])
+    if not files:
+        raise ValueError("Deployment manifest has no files")
+    for entry in files:
+        relative, source = source_file(entry["path"])
+        staged = directory / "HomeAssistant" / relative
+        if staged.is_symlink() or not staged.resolve().is_relative_to(directory / "HomeAssistant"):
+            raise ValueError(f"Unsafe staged file: {relative}")
+        expected = entry["sha256"]
+        if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"Stale deployment: {relative} changed; prepare a new payload")
+        if hashlib.sha256(staged.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"Altered deployment file: {relative}; prepare a new payload")
+    expected_paths = {entry["path"] for entry in files}
+    actual_paths = {
+        path.relative_to(directory / "HomeAssistant").as_posix()
+        for path in (directory / "HomeAssistant").rglob("*") if path.is_file()
+    }
+    if any(path.is_symlink() for path in (directory / "HomeAssistant").rglob("*")):
+        raise ValueError("Deployment contains symbolic links")
+    if expected_paths != actual_paths:
+        raise ValueError("Deployment contains missing or unlisted files")
+    print(f"Verified {len(files)} file(s) against the current configuration: {directory}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("files", nargs="+", help="Individual paths relative to config/")
+    parser.add_argument("files", nargs="*", help="Individual paths relative to config/")
+    parser.add_argument("--verify", type=Path, help="Check a prepared deployment folder before copying")
     args = parser.parse_args()
+    if args.verify:
+        if args.files:
+            parser.error("Use either file paths or --verify, not both")
+        verify_deployment(args.verify)
+        return
+    if not args.files:
+        parser.error("Provide individual configuration files to prepare")
     # Read and validate everything before creating the deployment folder.
     selected = {}
     for name in args.files:
@@ -60,9 +102,13 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(contents)
             manifest.append({"path": name, "sha256": hashlib.sha256(contents).hexdigest()})
-        (destination / "manifest.json").write_text(
-            json.dumps({"files": manifest, "deletions": []}, indent=2) + "\n"
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True
         )
+        (destination / "manifest.json").write_text(json.dumps({
+            "files": manifest, "deletions": [],
+            "git_commit": commit.stdout.strip() if commit.returncode == 0 else None,
+        }, indent=2) + "\n")
     except Exception:
         if destination.exists():
             shutil.rmtree(destination)
@@ -71,6 +117,7 @@ def main():
     print("Copy only these files to matching NAS paths; do not replace the whole folder.")
     for entry in manifest:
         print(f"  {entry['path']}")
+    print(f"Before copying, verify: python3 tools/prepare_deployment.py --verify {destination}")
 
 
 if __name__ == "__main__":
