@@ -11,7 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 TOP_LEVEL = {"configuration.yaml", "automations.yaml", "scripts.yaml", "scenes.yaml"}
-DIRECTORIES = {"packages", "blueprints", "themes", "custom_components", "www"}
+DIRECTORIES = {"packages", "blueprints", "themes", "custom_components", "www", "dashboards"}
 SUFFIXES = {
     ".yaml", ".yml", ".py", ".json", ".js", ".css", ".html", ".svg",
     ".png", ".jpg", ".jpeg", ".webp", ".gif", ".woff", ".woff2", ".ttf",

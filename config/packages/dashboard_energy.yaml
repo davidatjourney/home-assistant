@@ -1,0 +1,36 @@
+utility_meter:
+  geyser_energy_today:
+    name: Geyser Energy Today
+    unique_id: home_controls_geyser_energy_today
+    source: sensor.geyser_total_energy
+    cycle: daily
+template:
+- sensor:
+  - name: Home Dashboard Battery Flow
+    unique_id: home_dashboard_battery_flow
+    availability: '{{ is_number(states("sensor.combined_solar_system_battery_power"))
+      }}'
+    state: '{% set p = states("sensor.combined_solar_system_battery_power") | float(0)
+      %}
+
+      {% set magnitude = p | abs %}
+
+      {% set power = ((magnitude / 1000) | round(2) | string ~ '' kW'') if magnitude
+      >= 1000 else (magnitude | round(0) | int | string ~ '' W'') %}
+
+      {% if p < 0 %}Charging {{ power }}{% elif p > 0 %}Discharging {{ power }}{%
+      else %}Idle{% endif %}'
+  - name: Home Dashboard Grid Flow
+    unique_id: home_dashboard_grid_flow
+    availability: '{{ is_number(states("sensor.combined_solar_system_grid_power"))
+      }}'
+    state: '{% set p = states("sensor.combined_solar_system_grid_power") | float(0)
+      %}
+
+      {% set magnitude = p | abs %}
+
+      {% set power = ((magnitude / 1000) | round(2) | string ~ '' kW'') if magnitude
+      >= 1000 else (magnitude | round(0) | int | string ~ '' W'') %}
+
+      {% if p < 0 %}Exporting {{ power }}{% elif p > 0 %}Importing {{ power }}{% else
+      %}Idle{% endif %}'

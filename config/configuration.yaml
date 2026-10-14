@@ -13,3 +13,14 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+# Version-controlled dashboard; existing UI dashboards remain available.
+lovelace:
+  mode: storage
+  dashboards:
+    home-controls:
+      mode: yaml
+      title: Home controls
+      icon: mdi:home-outline
+      show_in_sidebar: true
+      filename: dashboards/home-controls.yaml

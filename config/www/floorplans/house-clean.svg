@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 140 1110 1140" width="1110" height="1140" role="img" aria-label="House floor plan with bedrooms, kitchen, living spaces, garage and pool">
+<rect x="20" y="140" width="1110" height="1140" fill="#f8fafc"/>
+<g stroke="#475569" stroke-width="5" stroke-linejoin="round">
+<path d="M260 380H454V444H468V532H444V574H260Z" fill="#eff6ff"/>
+<path d="M442 312H638V436H442Z" fill="#fff7ed"/>
+<path d="M468 436H638V532H468Z" fill="#f1f5f9"/>
+<path d="M638 380H884V574H772V528H638Z" fill="#fefce8"/>
+<path d="M260 574H488V738H448V824H270V750H238V704H260Z" fill="#f1f5f9"/>
+<path d="M488 574H722V654H698V738H488Z" fill="#eff6ff"/>
+<path d="M722 574H884V738H698V654H722Z" fill="#eff6ff"/>
+<path d="M884 430H1094V676H960V688H924V676H884Z" fill="#f1f5f9"/>
+<path d="M884 676H1094V982H884Z" fill="#f1f5f9"/>
+<path d="M894 176H1094V330H894Z" fill="#f1f5f9"/>
+<path d="M894 330H1094V430H894Z" fill="#f1f5f9"/>
+<path d="M884 330H944V430H884Z" fill="#f1f5f9"/>
+</g>
+<!-- Passage, openings and door swings preserve the room relationships. -->
+<path d="M444 532H638V528H772V574H580V590H544V574H488V590H448V574H444Z" fill="#f8fafc"/>
+<g stroke="#f8fafc" stroke-width="9">
+<path d="M444 534V574M448 574H487M544 574H580M722 574H758M922 676H960M916 982H1056M1094 628V668M598 532H638M942 294V330M1014 430H1054"/>
+</g>
+<g fill="none" stroke="#94a3b8" stroke-width="2">
+<path d="M444 574H484Q484 534 444 534M448 574V613Q487 613 487 574M544 574V612Q580 612 580 574M722 574V612Q758 612 758 574M922 676V714Q960 714 960 676M1094 668H1054Q1054 628 1094 628M638 532V494Q598 494 598 532M942 330V292Q980 292 980 330M1054 430V390Q1014 390 1014 430"/>
+</g>
+<g stroke="#64748b" stroke-width="2" fill="#fff">
+<rect x="550" y="732" width="104" height="10"/><rect x="756" y="732" width="90" height="10"/>
+<rect x="254" y="448" width="10" height="68"/><rect x="302" y="818" width="112" height="10"/>
+<rect x="966" y="170" width="86" height="10"/><rect x="1088" y="720" width="10" height="116"/>
+</g>
+<!-- Simplified wet-area fixtures. -->
+<g fill="#fff" stroke="#cbd5e1" stroke-width="2">
+<rect x="478" y="452" width="28" height="70" rx="8"/><rect x="526" y="450" width="38" height="20" rx="6"/>
+<ellipse cx="589" cy="467" rx="10" ry="14"/><rect x="895" y="341" width="38" height="34" rx="4"/>
+</g>
+<rect x="40" y="832" width="178" height="316" rx="18" fill="#dff4ff" stroke="#7ba5b9" stroke-width="4"/>
+<rect x="50" y="842" width="158" height="296" rx="12" fill="none" stroke="#b8e5f8" stroke-width="2"/>
+<g font-family="Arial,sans-serif" font-size="24" font-weight="500" text-anchor="middle" fill="#334155">
+<text x="541" y="334" font-size="19">Stoep</text>
+<text x="350" y="492">Main bedroom</text><text x="541" y="512" font-size="19">Bathroom</text>
+<text x="764" y="473">Kitchen</text><text x="357" y="670">Living room</text>
+<text x="600" y="647">Mika &amp; Dave</text><text x="794" y="647">Daniël</text>
+<text x="990" y="575">Family room</text><text x="990" y="831">Garage</text>
+<text x="914" y="412" font-size="10">Bathroom</text>
+<text x="994" y="253">Workshop</text><text x="1010" y="390" font-size="19">Utility room</text>
+</g>
+<g font-family="Arial,sans-serif" font-size="15" font-weight="600" text-anchor="middle" fill="#475569">
+<rect x="109" y="968" width="46" height="24" rx="6" fill="#ffffff"/>
+<text x="132" y="985">Pool</text>
+<rect x="507" y="398" width="64" height="24" rx="6" fill="#ffffff"/>
+<text x="539" y="415">Geyser</text>
+</g>
+</svg>
