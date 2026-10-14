@@ -1,0 +1,59 @@
+# Credentials and Home Assistant UI-managed state
+secrets.yaml
+.storage/
+.cloud/
+.env
+.env.*
+!.env.example
+*.key
+
+# Home Assistant runtime metadata, databases, and logs
+.HA_VERSION
+.ha_run.lock
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite3-journal
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3-shm
+*.sqlite3-wal
+*.db-journal
+*.log
+*.log.*
+
+# Generated dependencies, speech output, and backups
+deps/
+tts/
+backups/
+/.deploy/
+/.local-snapshot/
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local workspace tooling
+/.agents/
+/.aws/
+/.codex/
+.idea/
+.vscode/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~

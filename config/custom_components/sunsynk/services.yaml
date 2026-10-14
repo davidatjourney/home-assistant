@@ -1,0 +1,193 @@
+force_charge:
+  name: Force Charge
+  description: >
+    Set the battery charge current to a specific value.
+    Call again with your normal value to restore.
+  fields:
+    serial:
+      name: Inverter Serial
+      description: Exactly one target inverter. A parallel slave is routed to its master.
+      required: true
+      selector:
+        text:
+    current:
+      name: Charge Current
+      description: Charge current in Amperes (0 = stop charging).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: A
+
+force_discharge:
+  name: Force Discharge
+  description: >
+    Set the battery discharge current to a specific value.
+    Call again with your normal value to restore.
+  fields:
+    serial:
+      name: Inverter Serial
+      description: Exactly one target inverter. A parallel slave is routed to its master.
+      required: true
+      selector:
+        text:
+    current:
+      name: Discharge Current
+      description: Discharge current in Amperes (0 = stop discharging).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: A
+
+set_virtual_slot:
+  name: Set Virtual Slot
+  description: >
+    Define or replace one of up to 10 HA-side virtual charge/discharge slots.
+    These are resolved onto the physical Sunsynk time slots 1 and 6 (the only
+    pair the inverter allows to wrap past midnight), which the Virtual Slot
+    Scheduler takes exclusive ownership of (slots 2-5 are disabled and slot 2's
+    start is maintained as slot 1's end boundary). A live price override from the Tariff Manager always takes
+    precedence over the virtual schedule while active.
+  fields:
+    serial:
+      name: Inverter Serial
+      description: Exactly one target inverter schedule. A parallel slave shares its master's schedule.
+      required: true
+      selector:
+        text:
+    slot_id:
+      name: Virtual Slot ID
+      description: 1-10. Calling again with the same ID replaces that slot.
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: box
+    start:
+      name: Start Time
+      description: "Window start, HH:MM (24h). Some inverters only act on :00/:30 minute values — if a finer value seems to do nothing on yours, use :00/:30."
+      required: true
+      selector:
+        text:
+    end:
+      name: End Time
+      description: "Window end, HH:MM (24h). May be before start to wrap past midnight. Some inverters only act on :00/:30 minute values — if a finer value seems to do nothing on yours, use :00/:30."
+      required: true
+      selector:
+        text:
+    mode:
+      name: Mode
+      description: What the inverter should do during this window.
+      required: true
+      selector:
+        select:
+          options:
+            - charge
+            - discharge
+            - idle
+    weekdays:
+      name: Weekdays
+      description: Days this slot applies to. Omit for every day.
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+            - sun
+    current:
+      name: Current
+      description: chargeCurrent (mode charge) or dischargeCurrent (mode discharge), in Amps.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: A
+    target_soc:
+      name: Target / Minimum SOC
+      description: Stop charging at this SOC (mode charge) or stop discharging below it (mode discharge).
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    sell_power:
+      name: Sell Power
+      description: Max export power in Watts while discharging (mode discharge only).
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 30000
+          unit_of_measurement: W
+    priority:
+      name: Priority
+      description: Higher wins when two virtual slots' time windows overlap.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+    enabled:
+      name: Enabled
+      description: Uncheck to keep the slot's definition without it being scheduled.
+      required: false
+      selector:
+        boolean:
+
+clear_virtual_slot:
+  name: Clear Virtual Slot
+  description: Remove a previously defined virtual slot.
+  fields:
+    serial:
+      name: Inverter Serial
+      description: Exactly one target inverter schedule. A parallel slave shares its master's schedule.
+      required: true
+      selector:
+        text:
+    slot_id:
+      name: Virtual Slot ID
+      description: 1-10.
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: box
+
+set_work_mode:
+  name: Set Work Mode
+  description: >
+    Set the inverter system work mode.
+    0 = Selling First, 1 = Zero Export (Limit to Load), 2 = Limited to Home,
+    3 = Self Use, 4 = Time of Use. 0-2 confirmed against the Sunsynk portal
+    (2 confirmed on real hardware); 3-4 inferred from the same source, not
+    yet confirmed — see issue #14.
+  fields:
+    serial:
+      name: Inverter Serial
+      description: Exactly one target inverter. A parallel slave is routed to its master.
+      required: true
+      selector:
+        text:
+    mode:
+      name: Work Mode
+      description: System work mode (0–4).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 4
+          mode: box

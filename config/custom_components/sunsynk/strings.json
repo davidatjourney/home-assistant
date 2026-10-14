@@ -1,0 +1,126 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sunsynk / Deye Inverter Setup",
+        "description": "Connect to the Sunsynk cloud API. Separate multiple inverter serial numbers with semicolons.",
+        "data": {
+          "api_server": "API Server",
+          "username": "Sunsynk Account Email",
+          "password": "Sunsynk Account Password",
+          "serials": "Inverter Serial Number(s)",
+          "refresh_interval": "Refresh Interval (seconds)",
+          "access_mode": "Access mode",
+          "write_profiles": "Write profiles (JSON)"
+        },
+        "data_description": {
+          "serials": "For multiple inverters: SN123456;SN789012",
+          "refresh_interval": "How often to poll the Sunsynk API (minimum 60 seconds)",
+          "access_mode": "Read-only monitors your installation without changing inverter or plant settings. Select Read/write explicitly to allow control.",
+          "write_profiles": "Explicit master/member mapping and approved battery, power and SOC limits. See README for the JSON format. Required for Read/write; leave {} for monitoring only."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials. Check your Sunsynk email and password.",
+      "cannot_connect": "Cannot connect to the Sunsynk API. Check API server and internet connection.",
+      "invalid_serials": "Invalid serial number(s). Enter at least one serial.",
+      "invalid_write_profiles": "Provide valid write profiles with unique configured members, confirmed register scopes and approved limits for every writable inverter."
+    },
+    "abort": {
+      "already_configured": "This Sunsynk account is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sunsynk Options",
+        "data": {
+          "api_server": "API Server",
+          "username": "Sunsynk Account Email",
+          "password": "New Sunsynk Account Password",
+          "serials": "Inverter Serial Number(s)",
+          "refresh_interval": "Refresh Interval (seconds)",
+          "create_dashboard": "Create and maintain Sunsynk dashboard",
+          "latitude": "Latitude (Solar Forecast)",
+          "longitude": "Longitude (Solar Forecast)",
+          "panel_kwp": "Panel Peak Power (kWp)",
+          "performance_ratio": "Performance Ratio (0–1)",
+          "price_entity": "Import/Buy Price Sensor",
+          "export_price_entity": "Export/Sell Price Sensor (optional)",
+          "cheap_threshold": "Charge below price (cheap rate threshold)",
+          "cheap_charge_current": "Charge current at cheap rate (A)",
+          "normal_charge_current": "Normal charge current to restore (A)",
+          "cheap_target_soc": "Stop charging when SOC reaches (%)",
+          "expensive_threshold": "Discharge above price (expensive rate threshold)",
+          "peak_discharge_current": "Discharge current at expensive rate (A)",
+          "normal_discharge_current": "Normal discharge current to restore (A)",
+          "discharge_min_soc": "Stop discharging when SOC drops below (%)",
+          "tariff_start_hour": "Active schedule — start hour (0–23)",
+          "tariff_end_hour": "Active schedule — end hour (0–23)",
+          "price_max_age": "Price data max age (minutes)",
+          "access_mode": "Access mode",
+          "write_profiles": "Write profiles (JSON)",
+          "battery_bank_capacity_kwh": "Total battery-bank capacity (kWh)"
+        },
+        "data_description": {
+          "password": "Leave blank to keep the saved password. Enter a new password after changing it in the Sunsynk or Deye portal.",
+          "create_dashboard": "Opt in to creating a Lovelace dashboard, registering the bundled card resource, and updating that dashboard on each integration reload. Disabled by default.",
+          "latitude": "Optional — defaults to your HA home location",
+          "longitude": "Optional — defaults to your HA home location",
+          "panel_kwp": "Total installed panel capacity in kilowatt-peak. Leave blank to disable solar forecast.",
+          "performance_ratio": "System efficiency factor, default 0.80",
+          "price_entity": "Any sensor reporting electricity price (e.g. Octopus Agile, NordPool, Tibber). Leave blank to disable tariff management.",
+          "export_price_entity": "Drives discharge/sell decisions instead of the import price above — for tariffs where import and export rates aren't linked (e.g. Octopus Intelligent Go + Outgoing). Leave blank to use the import price for both.",
+          "cheap_threshold": "When price ≤ this value, charge the battery. Leave blank to disable cheap-rate charging.",
+          "cheap_charge_current": "Battery charge current during cheap period (e.g. 100 A).",
+          "normal_charge_current": "Charge current restored when cheap period ends.",
+          "cheap_target_soc": "Charging stops automatically once battery reaches this SOC. Default 100.",
+          "expensive_threshold": "When price ≥ this value, discharge the battery (sell to grid). Leave blank to disable.",
+          "peak_discharge_current": "Battery discharge current during expensive period (e.g. 100 A).",
+          "normal_discharge_current": "Discharge current restored when expensive period ends.",
+          "discharge_min_soc": "Discharging stops automatically when battery reaches this SOC. Default 10.",
+          "tariff_start_hour": "Hour of day (0–23) when tariff management activates. Leave blank for always-on.",
+          "tariff_end_hour": "Hour of day (0–23) when tariff management deactivates. Can wrap midnight (e.g. start 22, end 6).",
+          "price_max_age": "If the price sensor has not updated within this many minutes, any active charge/discharge mode is stopped as a safety measure. Default 90. Set high to effectively disable the check.",
+          "access_mode": "Read-only monitors your installation without changing inverter or plant settings. Select Read/write explicitly to allow control.",
+          "write_profiles": "Explicit master/member mapping and approved battery, power and SOC limits. See README for the JSON format. Required for Read/write; leave {} for monitoring only.",
+          "battery_bank_capacity_kwh": "Nominal capacity of the entire shared battery bank, counted once. Used to estimate stored energy from SOC. Leave blank to disable the battery energy line."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials. Check your Sunsynk email and password.",
+      "cannot_connect": "Cannot connect to the Sunsynk API. Check API server and internet connection.",
+      "already_configured": "This Sunsynk account is already configured.",
+      "invalid_serials": "Invalid serial number(s). Enter at least one serial.",
+      "invalid_forecast_config": "Solar forecast requires valid latitude, longitude and panel kWp (all numeric, kWp > 0).",
+      "invalid_tariff_config": "Tariff configuration error. Cheap charging needs threshold + charge current + normal current (all three). Discharge needs threshold + peak current + normal current (all three).",
+      "control_active": "Disable Tariff Manager and Virtual Slot Scheduler, wait for restoration and pending writes to finish, then try again. Failed restoration must be retried before selecting read-only.",
+      "invalid_write_profiles": "Provide valid write profiles with unique configured members, confirmed register scopes and approved limits for every writable inverter.",
+      "invalid_battery_capacity": "Enter a finite positive battery capacity in kWh, or leave blank."
+    }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Sunsynk authentication failed",
+      "description": "The Sunsynk cloud API rejected the credentials. Go to **Settings → Devices & Services → Sunsynk → Configure** and enter the new password."
+    },
+    "inverter_offline": {
+      "title": "Inverter {serial} is offline",
+      "description": "Data for inverter **{serial}** could not be fetched. Check that the inverter dongle is connected and the Sunsynk app shows live data."
+    },
+    "setting_write_mismatch": {
+      "title": "Setting {setting_key} did not apply on {serial}",
+      "description": "We told inverter **{serial}** to set **{setting_key}** to `{expected}`, but reading it back reports `{actual}`. The inverter or dongle may have rejected the value — check it directly in the Sunsynk app. This will clear automatically once a write to this setting is confirmed."
+    }
+  },
+  "selector": {
+    "access_mode": {
+      "options": {
+        "read_only": "Read-only",
+        "read_write": "Read/write"
+      }
+    }
+  }
+}

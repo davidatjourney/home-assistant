@@ -1,0 +1,40 @@
+- id: '1791310586579'
+  alias: Turn On Garage Outside Lights with sunset
+  description: ''
+  triggers:
+  - trigger: sun.sunset
+    options:
+      offset:
+        days: 0
+        hours: 0
+        minutes: 0
+        seconds: 0
+      offset_type: before
+  conditions: []
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    target:
+      area_id: garage
+    data: {}
+  mode: single
+- id: '1791310660217'
+  alias: Turn Off Outside Garage Light with sunrise
+  description: ''
+  triggers:
+  - trigger: sun.sunrise
+    options:
+      offset:
+        days: 0
+        hours: 0
+        minutes: 0
+        seconds: 0
+      offset_type: before
+  conditions: []
+  actions:
+  - action: switch.turn_off
+    metadata: {}
+    target:
+      device_id: 5655a21a639a3a9c66a30046a0f387ab
+    data: {}
+  mode: single

@@ -1,0 +1,642 @@
+"""Config flow for Sunsynk integration."""
+
+from __future__ import annotations
+
+import json
+import logging
+import math
+from typing import Any
+
+import aiohttp
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
+    SelectSelector,
+    SelectSelectorConfig,
+)
+
+from .api.auth import SunsynkAuth, SunsynkAuthError
+from .const import (
+    ACCESS_READ_ONLY,
+    ACCESS_READ_WRITE,
+    API_SERVER_SUNSYNK,
+    API_SERVERS,
+    CONF_ACCESS_MODE,
+    CONF_API_SERVER,
+    CONF_BATTERY_BANK_CAPACITY_KWH,
+    CONF_CHEAP_CHARGE_CURRENT,
+    CONF_CHEAP_TARGET_SOC,
+    CONF_CHEAP_THRESHOLD,
+    CONF_CREATE_DASHBOARD,
+    CONF_DISCHARGE_MIN_SOC,
+    CONF_EXPENSIVE_THRESHOLD,
+    CONF_EXPORT_PRICE_ENTITY,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_NORMAL_CHARGE_CURRENT,
+    CONF_NORMAL_DISCHARGE_CURRENT,
+    CONF_PANEL_KWP,
+    CONF_PEAK_DISCHARGE_CURRENT,
+    CONF_PERFORMANCE_RATIO,
+    CONF_PRICE_ENTITY,
+    CONF_PRICE_MAX_AGE,
+    CONF_REFRESH_INTERVAL,
+    CONF_SERIALS,
+    CONF_TARIFF_END_HOUR,
+    CONF_TARIFF_START_HOUR,
+    CONF_WRITE_PROFILES,
+    DEFAULT_CHEAP_TARGET_SOC,
+    DEFAULT_DISCHARGE_MIN_SOC,
+    DEFAULT_PERFORMANCE_RATIO,
+    DEFAULT_PRICE_MAX_AGE,
+    DEFAULT_REFRESH_INTERVAL,
+    DOMAIN,
+    MAX_REFRESH_INTERVAL,
+    MIN_REFRESH_INTERVAL,
+)
+from .write_validation import (
+    MAX_CURRENT_A,
+    SunsynkSettingValidationError,
+    parse_write_profiles,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+ACCESS_MODE_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[ACCESS_READ_ONLY, ACCESS_READ_WRITE],
+        translation_key=CONF_ACCESS_MODE,
+    )
+)
+
+
+def _prepare_read_only(hass: HomeAssistant, entry_id: str) -> bool:
+    """Revoke only after control and recovery are idle, before saving options."""
+    domain_data = hass.data.get(DOMAIN, {})
+    coordinator = domain_data.get(entry_id)
+    if coordinator is None:
+        return True
+    controllers = [
+        domain_data.get(f"{entry_id}_tariff"),
+        *domain_data.get(f"{entry_id}_vslots", {}).values(),
+    ]
+    if coordinator.writes_pending or any(
+        controller.is_enabled or controller.restoration_pending
+        for controller in controllers
+        if controller is not None
+    ):
+        return False
+    coordinator.write_policy.revoke()
+    return True
+
+
+STEP_USER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_ACCESS_MODE, default=ACCESS_READ_ONLY): ACCESS_MODE_SELECTOR,
+        vol.Optional(CONF_WRITE_PROFILES, default="{}"): str,
+        vol.Required(CONF_API_SERVER, default=API_SERVER_SUNSYNK): vol.In(
+            list(API_SERVERS.values())
+        ),
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+        vol.Required(CONF_SERIALS): str,
+        vol.Optional(CONF_REFRESH_INTERVAL, default=DEFAULT_REFRESH_INTERVAL): vol.All(
+            vol.Coerce(int),
+            vol.Range(min=MIN_REFRESH_INTERVAL, max=MAX_REFRESH_INTERVAL),
+        ),
+    }
+)
+
+
+async def _async_validate_credentials(
+    api_server: str,
+    username: str,
+    password: str,
+) -> None:
+    """Validate Sunsynk credentials by requesting a token."""
+    auth = SunsynkAuth(
+        api_server=api_server,
+        username=username,
+        password=password,
+    )
+    async with aiohttp.ClientSession() as session:
+        await auth.async_get_token(session)
+
+
+class SunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle config flow for Sunsynk."""
+
+    VERSION = 1
+
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            serials = [
+                s.strip() for s in user_input[CONF_SERIALS].split(";") if s.strip()
+            ]
+            if not serials:
+                errors[CONF_SERIALS] = "invalid_serials"
+            try:
+                profiles = parse_write_profiles(
+                    user_input.get(CONF_WRITE_PROFILES, "{}"), serials
+                )
+                if user_input.get(CONF_ACCESS_MODE) == ACCESS_READ_WRITE and set(
+                    serials
+                ) != {
+                    member
+                    for profile in profiles.values()
+                    for member in profile.members
+                }:
+                    raise SunsynkSettingValidationError(
+                        "Every writable inverter needs a profile"
+                    )
+            except SunsynkSettingValidationError:
+                errors[CONF_WRITE_PROFILES] = "invalid_write_profiles"
+            if not errors:
+                try:
+                    await _async_validate_credentials(
+                        user_input[CONF_API_SERVER],
+                        user_input[CONF_USERNAME],
+                        user_input[CONF_PASSWORD],
+                    )
+                except SunsynkAuthError:
+                    errors["base"] = "invalid_auth"
+                except Exception:
+                    _LOGGER.exception("Unexpected error during config flow")
+                    errors["base"] = "cannot_connect"
+                else:
+                    unique_id = (
+                        f"{user_input[CONF_API_SERVER]}_{user_input[CONF_USERNAME]}"
+                    )
+                    await self.async_set_unique_id(unique_id)
+                    self._abort_if_unique_id_configured()
+
+                    return self.async_create_entry(
+                        title=f"Sunsynk ({', '.join(serials)})",
+                        data={
+                            CONF_ACCESS_MODE: user_input.get(
+                                CONF_ACCESS_MODE, ACCESS_READ_ONLY
+                            ),
+                            CONF_WRITE_PROFILES: json.loads(
+                                user_input.get(CONF_WRITE_PROFILES, "{}") or "{}"
+                            ),
+                            CONF_API_SERVER: user_input[CONF_API_SERVER],
+                            CONF_USERNAME: user_input[CONF_USERNAME],
+                            CONF_PASSWORD: user_input[CONF_PASSWORD],
+                            CONF_SERIALS: serials,
+                            CONF_REFRESH_INTERVAL: user_input[CONF_REFRESH_INTERVAL],
+                        },
+                    )
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=STEP_USER_SCHEMA,
+            errors=errors,
+            description_placeholders={
+                "api_sunsynk": API_SERVER_SUNSYNK,
+                "serial_hint": "Separate multiple serials with semicolons: SN1;SN2",
+            },
+        )
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> SunsynkOptionsFlow:
+        return SunsynkOptionsFlow(config_entry)
+
+
+class SunsynkOptionsFlow(config_entries.OptionsFlow):
+    """Handle options flow for Sunsynk."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        errors: dict[str, str] = {}
+        opts = self._config_entry.options
+        data = self._config_entry.data
+
+        if user_input is not None:
+            serials_raw = user_input.get(CONF_SERIALS, "")
+            serials = [s.strip() for s in serials_raw.split(";") if s.strip()]
+            api_server = user_input.get(
+                CONF_API_SERVER,
+                data.get(CONF_API_SERVER, API_SERVER_SUNSYNK),
+            )
+            username = str(
+                user_input.get(CONF_USERNAME, data.get(CONF_USERNAME, ""))
+            ).strip()
+            new_password = user_input.get(CONF_PASSWORD) or ""
+            password = new_password or data.get(CONF_PASSWORD, "")
+            if not serials:
+                errors[CONF_SERIALS] = "invalid_serials"
+            capacity_fields: dict[str, float] = {}
+            capacity_raw = user_input.get(
+                CONF_BATTERY_BANK_CAPACITY_KWH,
+                opts.get(CONF_BATTERY_BANK_CAPACITY_KWH, ""),
+            )
+            if str(capacity_raw).strip():
+                try:
+                    capacity = float(capacity_raw)
+                    if (
+                        isinstance(capacity_raw, bool)
+                        or not math.isfinite(capacity)
+                        or capacity <= 0
+                    ):
+                        raise ValueError
+                    capacity_fields[CONF_BATTERY_BANK_CAPACITY_KWH] = capacity
+                except (TypeError, ValueError):
+                    errors[CONF_BATTERY_BANK_CAPACITY_KWH] = "invalid_battery_capacity"
+            profiles_raw = user_input.get(
+                CONF_WRITE_PROFILES,
+                json.dumps(
+                    opts.get(CONF_WRITE_PROFILES, data.get(CONF_WRITE_PROFILES, {}))
+                ),
+            )
+            try:
+                profiles = parse_write_profiles(profiles_raw, serials)
+                if user_input.get(CONF_ACCESS_MODE) == ACCESS_READ_WRITE and set(
+                    serials
+                ) != {
+                    member
+                    for profile in profiles.values()
+                    for member in profile.members
+                }:
+                    raise SunsynkSettingValidationError(
+                        "Every writable inverter needs a profile"
+                    )
+            except SunsynkSettingValidationError:
+                errors[CONF_WRITE_PROFILES] = "invalid_write_profiles"
+            if not username or not password:
+                errors["base"] = "invalid_auth"
+            else:
+                kwp_raw = str(user_input.get(CONF_PANEL_KWP, "")).strip()
+
+                forecast_fields: dict[str, Any] = {}
+                if kwp_raw:
+                    try:
+                        kwp = float(kwp_raw)
+                        if not math.isfinite(kwp) or kwp <= 0:
+                            raise ValueError
+                        forecast_fields[CONF_PANEL_KWP] = kwp
+                        lat_raw = str(user_input.get(CONF_LATITUDE, "")).strip()
+                        lon_raw = str(user_input.get(CONF_LONGITUDE, "")).strip()
+                        latitude = (
+                            float(lat_raw)
+                            if lat_raw
+                            else float(self.hass.config.latitude)
+                        )
+                        longitude = (
+                            float(lon_raw)
+                            if lon_raw
+                            else float(self.hass.config.longitude)
+                        )
+                        pr_raw = str(user_input.get(CONF_PERFORMANCE_RATIO, "")).strip()
+                        performance_ratio = (
+                            float(pr_raw) if pr_raw else DEFAULT_PERFORMANCE_RATIO
+                        )
+                        if not (
+                            math.isfinite(latitude)
+                            and -90 <= latitude <= 90
+                            and math.isfinite(longitude)
+                            and -180 <= longitude <= 180
+                            and math.isfinite(performance_ratio)
+                            and 0 < performance_ratio <= 1
+                        ):
+                            raise ValueError
+                        forecast_fields[CONF_LATITUDE] = latitude
+                        forecast_fields[CONF_LONGITUDE] = longitude
+                        forecast_fields[CONF_PERFORMANCE_RATIO] = performance_ratio
+                    except (ValueError, TypeError):
+                        errors["base"] = "invalid_forecast_config"
+
+                tariff_fields: dict[str, Any] = {}
+                price_entity = user_input.get(CONF_PRICE_ENTITY, "")
+                if price_entity:
+                    tariff_fields[CONF_PRICE_ENTITY] = price_entity
+                    export_price_entity = user_input.get(CONF_EXPORT_PRICE_ENTITY, "")
+                    if export_price_entity:
+                        tariff_fields[CONF_EXPORT_PRICE_ENTITY] = export_price_entity
+                    try:
+                        tariff_fields.update(self._parse_tariff_fields(user_input))
+                    except (ValueError, TypeError):
+                        errors["base"] = "invalid_tariff_config"
+
+                if not errors:
+                    credentials_changed = (
+                        api_server != data.get(CONF_API_SERVER)
+                        or username != data.get(CONF_USERNAME)
+                        or bool(new_password)
+                    )
+                    if credentials_changed:
+                        unique_id = f"{api_server}_{username}"
+                        for entry in self.hass.config_entries.async_entries(DOMAIN):
+                            if (
+                                entry.entry_id != self._config_entry.entry_id
+                                and entry.unique_id == unique_id
+                            ):
+                                errors["base"] = "already_configured"
+                                break
+
+                    if credentials_changed and not errors:
+                        try:
+                            await _async_validate_credentials(
+                                api_server,
+                                username,
+                                password,
+                            )
+                        except SunsynkAuthError:
+                            errors["base"] = "invalid_auth"
+                        except Exception:
+                            _LOGGER.exception(
+                                "Unexpected error while updating Sunsynk credentials"
+                            )
+                            errors["base"] = "cannot_connect"
+
+                if (
+                    not errors
+                    and (
+                        user_input.get(CONF_ACCESS_MODE, ACCESS_READ_ONLY)
+                        != ACCESS_READ_WRITE
+                        or json.loads(profiles_raw or "{}")
+                        != opts.get(
+                            CONF_WRITE_PROFILES, data.get(CONF_WRITE_PROFILES, {})
+                        )
+                    )
+                    and not _prepare_read_only(self.hass, self._config_entry.entry_id)
+                ):
+                    errors["base"] = "control_active"
+
+                if not errors:
+                    if credentials_changed:
+                        new_data = dict(data)
+                        new_data.update(
+                            {
+                                CONF_API_SERVER: api_server,
+                                CONF_USERNAME: username,
+                                CONF_PASSWORD: password,
+                            }
+                        )
+                        self.hass.config_entries.async_update_entry(
+                            self._config_entry,
+                            data=new_data,
+                            unique_id=f"{api_server}_{username}",
+                        )
+
+                    return self.async_create_entry(
+                        title="",
+                        data={
+                            CONF_ACCESS_MODE: user_input.get(
+                                CONF_ACCESS_MODE, ACCESS_READ_ONLY
+                            ),
+                            CONF_WRITE_PROFILES: json.loads(profiles_raw or "{}"),
+                            CONF_REFRESH_INTERVAL: user_input[CONF_REFRESH_INTERVAL],
+                            CONF_SERIALS: serials,
+                            CONF_CREATE_DASHBOARD: user_input.get(
+                                CONF_CREATE_DASHBOARD, False
+                            ),
+                            **capacity_fields,
+                            **forecast_fields,
+                            **tariff_fields,
+                        },
+                    )
+
+        current_serials = opts.get(CONF_SERIALS, data.get(CONF_SERIALS, []))
+        current_refresh = opts.get(
+            CONF_REFRESH_INTERVAL,
+            data.get(CONF_REFRESH_INTERVAL, DEFAULT_REFRESH_INTERVAL),
+        )
+        current_lat = opts.get(
+            CONF_LATITUDE, data.get(CONF_LATITUDE, self.hass.config.latitude)
+        )
+        current_lon = opts.get(
+            CONF_LONGITUDE, data.get(CONF_LONGITUDE, self.hass.config.longitude)
+        )
+        current_kwp = opts.get(CONF_PANEL_KWP, data.get(CONF_PANEL_KWP, ""))
+        current_pr = opts.get(
+            CONF_PERFORMANCE_RATIO, data.get(CONF_PERFORMANCE_RATIO, "")
+        )
+
+        def _opt(key: str, default: Any = "") -> Any:
+            return opts.get(key, data.get(key, default))
+
+        def _opt_str(key: str) -> str:
+            # Tariff fields are stored as int/float once saved (see
+            # _parse_tariff_fields), but redisplayed here as plain `str`
+            # form fields — always stringify so the schema default never
+            # disagrees with its own validator.
+            value = _opt(key, "")
+            return "" if value == "" else str(value)
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_ACCESS_MODE,
+                    default=ACCESS_READ_WRITE
+                    if _opt(CONF_ACCESS_MODE, ACCESS_READ_ONLY) == ACCESS_READ_WRITE
+                    else ACCESS_READ_ONLY,
+                ): ACCESS_MODE_SELECTOR,
+                vol.Optional(
+                    CONF_WRITE_PROFILES,
+                    default=json.dumps(_opt(CONF_WRITE_PROFILES, {})),
+                ): str,
+                vol.Required(
+                    CONF_API_SERVER,
+                    default=data.get(CONF_API_SERVER, API_SERVER_SUNSYNK),
+                ): vol.In(list(API_SERVERS.values())),
+                vol.Required(
+                    CONF_USERNAME,
+                    default=data.get(CONF_USERNAME, ""),
+                ): str,
+                vol.Optional(CONF_PASSWORD, default=""): str,
+                vol.Required(CONF_SERIALS, default=";".join(current_serials)): str,
+                vol.Optional(CONF_REFRESH_INTERVAL, default=current_refresh): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_REFRESH_INTERVAL, max=MAX_REFRESH_INTERVAL),
+                ),
+                vol.Optional(
+                    CONF_CREATE_DASHBOARD,
+                    default=bool(_opt(CONF_CREATE_DASHBOARD, False)),
+                ): cv.boolean,
+                vol.Optional(
+                    CONF_BATTERY_BANK_CAPACITY_KWH,
+                    default=_opt_str(CONF_BATTERY_BANK_CAPACITY_KWH),
+                ): str,
+                # Solar Forecast
+                vol.Optional(
+                    CONF_LATITUDE, default=str(current_lat) if current_lat != "" else ""
+                ): str,
+                vol.Optional(
+                    CONF_LONGITUDE,
+                    default=str(current_lon) if current_lon != "" else "",
+                ): str,
+                vol.Optional(
+                    CONF_PANEL_KWP,
+                    default=str(current_kwp) if current_kwp != "" else "",
+                ): str,
+                vol.Optional(
+                    CONF_PERFORMANCE_RATIO,
+                    default=str(current_pr)
+                    if current_pr != ""
+                    else str(DEFAULT_PERFORMANCE_RATIO),
+                ): str,
+                # Tariff — price sensor(s). Export defaults to the same entity as
+                # import when left blank, so single-price setups are unaffected.
+                vol.Optional(
+                    CONF_PRICE_ENTITY,
+                    description={"suggested_value": _opt(CONF_PRICE_ENTITY) or None},
+                ): EntitySelector(
+                    EntitySelectorConfig(domain=["sensor", "input_number"])
+                ),
+                vol.Optional(
+                    CONF_EXPORT_PRICE_ENTITY,
+                    description={
+                        "suggested_value": _opt(CONF_EXPORT_PRICE_ENTITY) or None
+                    },
+                ): EntitySelector(
+                    EntitySelectorConfig(domain=["sensor", "input_number"])
+                ),
+                # Cheap-rate charging
+                vol.Optional(
+                    CONF_CHEAP_THRESHOLD, default=_opt_str(CONF_CHEAP_THRESHOLD)
+                ): str,
+                vol.Optional(
+                    CONF_CHEAP_CHARGE_CURRENT,
+                    default=_opt_str(CONF_CHEAP_CHARGE_CURRENT),
+                ): str,
+                vol.Optional(
+                    CONF_NORMAL_CHARGE_CURRENT,
+                    default=_opt_str(CONF_NORMAL_CHARGE_CURRENT),
+                ): str,
+                vol.Optional(
+                    CONF_CHEAP_TARGET_SOC,
+                    default=_opt(CONF_CHEAP_TARGET_SOC, DEFAULT_CHEAP_TARGET_SOC),
+                ): vol.All(vol.Coerce(int), vol.Range(min=10, max=100)),
+                # Expensive-rate discharging
+                vol.Optional(
+                    CONF_EXPENSIVE_THRESHOLD, default=_opt_str(CONF_EXPENSIVE_THRESHOLD)
+                ): str,
+                vol.Optional(
+                    CONF_PEAK_DISCHARGE_CURRENT,
+                    default=_opt_str(CONF_PEAK_DISCHARGE_CURRENT),
+                ): str,
+                vol.Optional(
+                    CONF_NORMAL_DISCHARGE_CURRENT,
+                    default=_opt_str(CONF_NORMAL_DISCHARGE_CURRENT),
+                ): str,
+                vol.Optional(
+                    CONF_DISCHARGE_MIN_SOC,
+                    default=_opt(CONF_DISCHARGE_MIN_SOC, DEFAULT_DISCHARGE_MIN_SOC),
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=90)),
+                # Scheduler (both blank = always active)
+                vol.Optional(
+                    CONF_TARIFF_START_HOUR, default=_opt_str(CONF_TARIFF_START_HOUR)
+                ): str,
+                vol.Optional(
+                    CONF_TARIFF_END_HOUR, default=_opt_str(CONF_TARIFF_END_HOUR)
+                ): str,
+                # Price quality
+                vol.Optional(
+                    CONF_PRICE_MAX_AGE,
+                    default=_opt(CONF_PRICE_MAX_AGE, DEFAULT_PRICE_MAX_AGE),
+                ): vol.All(vol.Coerce(int), vol.Range(min=5, max=1440)),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=schema,
+            errors=errors,
+        )
+
+    @staticmethod
+    def _parse_tariff_fields(user_input: dict[str, Any]) -> dict[str, Any]:
+        """Parse and validate optional tariff numeric fields."""
+        result: dict[str, Any] = {}
+
+        def _parse_float(key: str) -> float | None:
+            raw = str(user_input.get(key, "")).strip()
+            if not raw:
+                return None
+            value = float(raw)
+            if not math.isfinite(value):
+                raise ValueError(f"{key} must be finite")
+            return value
+
+        def _parse_int(key: str) -> int | None:
+            raw = str(user_input.get(key, "")).strip()
+            return int(raw) if raw else None
+
+        cheap_thr = _parse_float(CONF_CHEAP_THRESHOLD)
+        cheap_amp = _parse_int(CONF_CHEAP_CHARGE_CURRENT)
+        normal_amp = _parse_int(CONF_NORMAL_CHARGE_CURRENT)
+
+        if any(v is not None for v in (cheap_thr, cheap_amp, normal_amp)):
+            if not all(v is not None for v in (cheap_thr, cheap_amp, normal_amp)):
+                raise ValueError(
+                    "Cheap charging requires threshold, charge current, and normal current"
+                )
+            if (
+                not 1 <= cheap_amp <= MAX_CURRENT_A
+                or not 1 <= normal_amp <= MAX_CURRENT_A
+            ):  # type: ignore[operator]
+                raise ValueError(
+                    f"Charge currents must be positive and no greater than {MAX_CURRENT_A} A"
+                )
+            result[CONF_CHEAP_THRESHOLD] = cheap_thr
+            result[CONF_CHEAP_CHARGE_CURRENT] = cheap_amp
+            result[CONF_NORMAL_CHARGE_CURRENT] = normal_amp
+            result[CONF_CHEAP_TARGET_SOC] = user_input.get(
+                CONF_CHEAP_TARGET_SOC, DEFAULT_CHEAP_TARGET_SOC
+            )
+
+        exp_thr = _parse_float(CONF_EXPENSIVE_THRESHOLD)
+        peak_amp = _parse_int(CONF_PEAK_DISCHARGE_CURRENT)
+        normal_dis_amp = _parse_int(CONF_NORMAL_DISCHARGE_CURRENT)
+
+        if any(v is not None for v in (exp_thr, peak_amp, normal_dis_amp)):
+            if not all(v is not None for v in (exp_thr, peak_amp, normal_dis_amp)):
+                raise ValueError(
+                    "Discharge requires threshold, peak discharge current, and normal discharge current"
+                )
+            if (
+                not 1 <= peak_amp <= MAX_CURRENT_A
+                or not 1 <= normal_dis_amp <= MAX_CURRENT_A
+            ):  # type: ignore[operator]
+                raise ValueError(
+                    "Discharge currents must be positive and no greater than "
+                    f"{MAX_CURRENT_A} A"
+                )
+            result[CONF_EXPENSIVE_THRESHOLD] = exp_thr
+            result[CONF_PEAK_DISCHARGE_CURRENT] = peak_amp
+            result[CONF_NORMAL_DISCHARGE_CURRENT] = normal_dis_amp
+            result[CONF_DISCHARGE_MIN_SOC] = user_input.get(
+                CONF_DISCHARGE_MIN_SOC, DEFAULT_DISCHARGE_MIN_SOC
+            )
+
+        start_raw = str(user_input.get(CONF_TARIFF_START_HOUR, "")).strip()
+        end_raw = str(user_input.get(CONF_TARIFF_END_HOUR, "")).strip()
+        if start_raw or end_raw:
+            if not (start_raw and end_raw):
+                raise ValueError("Schedule requires both start hour and end hour")
+            start_h, end_h = int(start_raw), int(end_raw)
+            if not (0 <= start_h <= 23 and 0 <= end_h <= 23):
+                raise ValueError("Hours must be 0–23")
+            result[CONF_TARIFF_START_HOUR] = start_h
+            result[CONF_TARIFF_END_HOUR] = end_h
+
+        result[CONF_PRICE_MAX_AGE] = user_input.get(
+            CONF_PRICE_MAX_AGE, DEFAULT_PRICE_MAX_AGE
+        )
+        return result

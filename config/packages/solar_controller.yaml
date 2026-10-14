@@ -1,0 +1,903 @@
+###############################################################################
+# SOLAR ENERGY CONTROLLER
+#
+# STAGE 1 - MONITORING / DECISION SUPPORT ONLY
+#
+# This package:
+# - Tracks daily pool energy
+# - Calculates household energy excluding the pool
+# - Learns normal daily household consumption
+# - Calculates remaining solar / remaining load / battery room
+# - Calculates expected solar excess
+# - Tracks the 30-minute battery SOC trend
+# - Calculates whether the battery is on track to reach 100% by 15:30
+# - Produces a recommendation for whether the pool SHOULD be running
+#
+# IMPORTANT:
+# It DOES NOT turn the pool or geyser on/off.
+###############################################################################
+
+
+###############################################################################
+# ADJUSTABLE SETTINGS
+#
+# These become Home Assistant helpers.
+# Later you will be able to change these from the dashboard without editing YAML.
+###############################################################################
+
+input_number:
+
+  solar_default_daily_required_load:
+    name: Solar - Default Daily Required Load
+    min: 5
+    max: 50
+    step: 0.5
+    unit_of_measurement: "kWh"
+    initial: 20
+
+  solar_pv_window_offset:
+    name: Solar - PV Window Offset
+    min: 0
+    max: 90
+    step: 5
+    unit_of_measurement: "min"
+    initial: 30
+
+  solar_load_safety_margin:
+    name: Solar - Load Forecast Safety Margin
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "%"
+    initial: 10
+
+  solar_battery_capacity:
+    name: Solar - Battery Capacity
+    min: 5
+    max: 50
+    step: 0.5
+    unit_of_measurement: "kWh"
+    initial: 20
+
+  solar_minimum_discretionary_soc:
+    name: Solar - Minimum Discretionary SOC
+    min: 20
+    max: 90
+    step: 1
+    unit_of_measurement: "%"
+    initial: 50
+
+  solar_grid_import_limit:
+    name: Solar - Grid Import Protection
+    min: 0
+    max: 5000
+    step: 100
+    unit_of_measurement: "W"
+    initial: 1500
+
+  solar_battery_discharge_limit:
+    name: Solar - Battery Discharge Protection
+    min: 0
+    max: 5000
+    step: 50
+    unit_of_measurement: "W"
+    initial: 750
+
+
+###############################################################################
+# TARGET TIME
+#
+# We want the battery to reach 100% by this time.
+#
+# This does NOT mean the pool must stop at 15:30.
+#
+# If the battery is full after 15:30 and surplus solar is still available,
+# the pool can still run.
+###############################################################################
+
+input_datetime:
+
+  solar_battery_full_target:
+    name: Solar - Battery Full Target
+    has_date: false
+    has_time: true
+    initial: "15:30:00"
+
+
+###############################################################################
+# POOL DAILY ENERGY
+#
+# sensor.pool_total_energy is the cumulative kWh meter from the pool switch.
+#
+# Home Assistant turns that into:
+#
+# sensor.solar_pool_energy_today
+#
+# which resets its displayed consumption every day.
+###############################################################################
+
+utility_meter:
+
+  solar_pool_energy_today:
+    name: Solar - Pool Energy Today
+    source: sensor.pool_total_energy
+    cycle: daily
+
+
+###############################################################################
+# STATISTICAL / DERIVATIVE SENSORS
+###############################################################################
+
+sensor:
+
+  ###########################################################################
+  # BATTERY SOC RATE
+  #
+  # Measures how quickly the battery SOC has been changing over the previous
+  # 30 minutes.
+  #
+  # Examples:
+  #
+  # +12 %/h = battery charging quickly
+  #  +4 %/h = battery charging slowly
+  #   0 %/h = battery flat
+  #  -5 %/h = battery losing charge
+  ###########################################################################
+
+  - platform: derivative
+    source: sensor.combined_solar_system_battery_soc
+    name: Solar Controller Battery SOC Rate
+    unique_id: solar_controller_battery_soc_rate
+    round: 1
+    unit_time: h
+    time_window: "00:30:00"
+
+
+  ###########################################################################
+  # 7-DAY REQUIRED HOUSEHOLD LOAD AVERAGE
+  #
+  # Source sensor is updated once every night.
+  #
+  # Pool consumption is excluded.
+  # Geyser consumption remains included.
+  ###########################################################################
+
+  - platform: statistics
+    name: Solar Controller Required Load 7 Day Average
+    unique_id: solar_controller_required_load_7_day_average
+    entity_id: sensor.solar_controller_daily_required_load_sample
+    state_characteristic: mean
+    sampling_size: 7
+    max_age:
+      days: 8
+    keep_last_sample: true
+    precision: 2
+
+
+  ###########################################################################
+  # NUMBER OF DAILY SAMPLES AVAILABLE
+  #
+  # We only start trusting the learned value after at least 3 daily samples.
+  ###########################################################################
+
+  - platform: statistics
+    name: Solar Controller Required Load Sample Count
+    unique_id: solar_controller_required_load_sample_count
+    entity_id: sensor.solar_controller_daily_required_load_sample
+    state_characteristic: count
+    sampling_size: 7
+    max_age:
+      days: 8
+    keep_last_sample: true
+    precision: 0
+
+
+###############################################################################
+# TEMPLATE SENSORS
+###############################################################################
+
+template:
+
+  ###########################################################################
+  # NIGHTLY HOUSEHOLD LOAD SAMPLE
+  #
+  # At 23:59 every night, store today's required household consumption.
+  #
+  # Because "Required Load Today" already excludes the pool, the historical
+  # learning will also exclude pool consumption.
+  ###########################################################################
+
+  - triggers:
+      - trigger: time
+        at: "23:59:00"
+
+    sensor:
+
+      - name: Solar Controller Daily Required Load Sample
+        unique_id: solar_controller_daily_required_load_sample
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {{ states('sensor.solar_controller_required_load_today') | float(0) }}
+        attributes:
+          sample_date: "{{ now().date() }}"
+
+
+  ###########################################################################
+  # CALCULATED ENERGY VALUES
+  ###########################################################################
+
+  - sensor:
+
+      #######################################################################
+      # REQUIRED HOUSEHOLD LOAD USED TODAY
+      #
+      # Inverter total household energy
+      # MINUS pool energy.
+      #
+      # Geyser remains included because hot water is considered required load,
+      # even though we can choose WHEN to heat it.
+      #######################################################################
+
+      - name: Solar Controller Required Load Today
+        unique_id: solar_controller_required_load_today
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: measurement
+        state: >
+          {% set total =
+            states('sensor.combined_solar_system_load_energy_used_today')
+            | float(0) %}
+
+          {% set pool =
+            states('sensor.solar_pool_energy_today')
+            | float(0) %}
+
+          {{ [total - pool, 0] | max | round(2) }}
+
+
+      #######################################################################
+      # ESTIMATED TOTAL REQUIRED LOAD FOR TODAY
+      #
+      # Fewer than 3 historical days:
+      #     use default 20 kWh
+      #
+      # 3 or more historical days:
+      #     use 7-day average + safety margin
+      #
+      # Example:
+      #
+      # Average = 19 kWh
+      # Safety margin = 10%
+      #
+      # Estimate = 20.9 kWh
+      #######################################################################
+
+      - name: Solar Controller Estimated Daily Required Load
+        unique_id: solar_controller_estimated_daily_required_load
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {% set default =
+            states('input_number.solar_default_daily_required_load')
+            | float(20) %}
+
+          {% set margin =
+            states('input_number.solar_load_safety_margin')
+            | float(10) %}
+
+          {% set count =
+            states('sensor.solar_controller_required_load_sample_count')
+            | int(0) %}
+
+          {% set average =
+            states('sensor.solar_controller_required_load_7_day_average') %}
+
+          {% if count >= 3 and is_number(average) %}
+            {{ ((average | float) * (1 + margin / 100)) | round(2) }}
+          {% else %}
+            {{ default | round(2) }}
+          {% endif %}
+
+
+      #######################################################################
+      # REQUIRED HOUSEHOLD ENERGY STILL EXPECTED TODAY
+      #######################################################################
+
+      - name: Solar Controller Required Load Remaining
+        unique_id: solar_controller_required_load_remaining
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {% set estimate =
+            states('sensor.solar_controller_estimated_daily_required_load')
+            | float(20) %}
+
+          {% set used =
+            states('sensor.solar_controller_required_load_today')
+            | float(0) %}
+
+          {{ [estimate - used, 0] | max | round(2) }}
+
+
+      #######################################################################
+      # SOLAR ENERGY STILL EXPECTED TODAY
+      #
+      # sensor.solar_forecast_today gives the forecast for the whole day.
+      #
+      # It does NOT provide an hourly forecast, so we distribute the daily
+      # forecast over the effective daylight period using a smooth cosine
+      # curve.
+      #
+      # Effective solar window:
+      #
+      # sunrise + configurable offset
+      #             ↓
+      #       useful PV starts
+      #
+      #       useful PV ends
+      #             ↓
+      # sunset - configurable offset
+      #
+      # At the effective start:
+      #     100% of forecast energy remains
+      #
+      # Halfway through:
+      #     50% remains
+      #
+      # At the effective end:
+      #     0% remains
+      #######################################################################
+
+      - name: Solar Controller Solar Remaining
+        unique_id: solar_controller_solar_remaining
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {% set forecast =
+            states('sensor.solar_forecast_today') | float(0) %}
+
+          {% set offset_seconds =
+            states('input_number.solar_pv_window_offset')
+            | float(30) * 60 %}
+
+          {% set now_ts = as_timestamp(now()) %}
+
+          {% set next_rising =
+            as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+
+          {% set next_setting =
+            as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+
+          {% set sun_is_up =
+            is_state('sun.sun', 'above_horizon') %}
+
+          {% set sun_is_rising =
+            state_attr('sun.sun', 'rising') | default(false) %}
+
+
+          {# ------------------------------------------------------------- #}
+          {# BEFORE SUNRISE                                               #}
+          {# ------------------------------------------------------------- #}
+
+          {% if not sun_is_up and sun_is_rising %}
+
+            {% set effective_start =
+              next_rising + offset_seconds %}
+
+            {% if now_ts < effective_start %}
+
+              {{ forecast | round(2) }}
+
+            {% else %}
+
+              {{ forecast | round(2) }}
+
+            {% endif %}
+
+
+          {# ------------------------------------------------------------- #}
+          {# AFTER SUNSET                                                 #}
+          {# ------------------------------------------------------------- #}
+
+          {% elif not sun_is_up %}
+
+            0
+
+
+          {# ------------------------------------------------------------- #}
+          {# DURING DAYLIGHT                                              #}
+          {# ------------------------------------------------------------- #}
+
+          {% else %}
+
+            {#
+              While the sun is up:
+              - next_setting is today's sunset
+              - next_rising is tomorrow's sunrise
+
+              Today's sunrise is therefore approximated by subtracting
+              one day from next_rising.
+
+              The day-to-day sunrise change is very small, so this is
+              sufficiently accurate for our energy-control calculation.
+            #}
+
+            {% set sunrise_today =
+              next_rising - 86400 %}
+
+            {% set sunset_today =
+              next_setting %}
+
+            {% set effective_start =
+              sunrise_today + offset_seconds %}
+
+            {% set effective_end =
+              sunset_today - offset_seconds %}
+
+
+            {% if now_ts <= effective_start %}
+
+              {{ forecast | round(2) }}
+
+
+            {% elif now_ts >= effective_end %}
+
+              0
+
+
+            {% else %}
+
+              {% set daylight_position =
+                (now_ts - effective_start)
+                /
+                (effective_end - effective_start) %}
+
+              {#
+                Smooth remaining-energy curve:
+
+                sunrise       noon          sunset
+                  100%   →     50%    →       0%
+
+                remaining =
+                (1 + cos(pi × daylight_position)) / 2
+              #}
+
+              {% set remaining_fraction =
+                (1 + cos(pi * daylight_position)) / 2 %}
+
+              {{ (forecast * remaining_fraction) | round(2) }}
+
+            {% endif %}
+
+          {% endif %}
+
+      #######################################################################
+      # UNUSED BATTERY CAPACITY
+      #
+      # Battery capacity = 20 kWh
+      #
+      # At 70% SOC:
+      #
+      # 20 kWh x 30% = 6 kWh remaining battery storage
+      #######################################################################
+
+      - name: Solar Controller Battery Room
+        unique_id: solar_controller_battery_room
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {% set capacity =
+            states('input_number.solar_battery_capacity')
+            | float(20) %}
+
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {{ (capacity * (100 - soc) / 100) | round(2) }}
+
+
+      #######################################################################
+      # FORECAST EXCESS SOLAR
+      #
+      # Solar still expected
+      # MINUS
+      # Required household load remaining
+      # MINUS
+      # Empty battery capacity
+      #
+      # Positive number:
+      #     We expect spare solar.
+      #
+      # Negative number:
+      #     We still need the expected solar for house + battery.
+      #######################################################################
+
+      - name: Solar Controller Forecast Excess
+        unique_id: solar_controller_forecast_excess
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >
+          {% set solar =
+            states('sensor.solar_controller_solar_remaining')
+            | float(0) %}
+
+          {% set load =
+            states('sensor.solar_controller_required_load_remaining')
+            | float(0) %}
+
+          {% set battery =
+            states('sensor.solar_controller_battery_room')
+            | float(0) %}
+
+          {{ (solar - load - battery) | round(2) }}
+
+
+      #######################################################################
+      # REQUIRED BATTERY CHARGE RATE
+      #
+      # Calculates how quickly SOC must rise from NOW to reach 100% by the
+      # configured target time.
+      #
+      # Example:
+      #
+      # Time = 13:00
+      # SOC = 70%
+      # Target = 15:30
+      #
+      # 30% / 2.5 hours = 12 %/h required
+      #######################################################################
+
+      - name: Solar Controller Required SOC Rate
+        unique_id: solar_controller_required_soc_rate
+        unit_of_measurement: "%/h"
+        state_class: measurement
+        state: >
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {% set target =
+            today_at(states('input_datetime.solar_battery_full_target')) %}
+
+          {% set hours =
+            (as_timestamp(target) - as_timestamp(now())) / 3600 %}
+
+          {% if soc >= 99.5 %}
+            0
+          {% elif hours > 0 %}
+            {{ ((100 - soc) / hours) | round(1) }}
+          {% else %}
+            0
+          {% endif %}
+
+
+      #######################################################################
+      # PROJECTED BATTERY FULL TIME
+      #
+      # Uses the actual 30-minute SOC trend.
+      #
+      # Example:
+      #
+      # SOC = 70%
+      # Charging rate = +10 %/h
+      #
+      # 30% remaining / 10 = 3 hours until full.
+      #######################################################################
+
+      - name: Solar Controller Projected Full Time
+        unique_id: solar_controller_projected_full_time
+        device_class: timestamp
+        state: >
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {% set rate =
+            states('sensor.solar_controller_battery_soc_rate')
+            | float(0) %}
+
+          {% if soc >= 99.5 %}
+            {{ now().isoformat() }}
+
+          {% elif rate > 0.1 %}
+            {% set hours = (100 - soc) / rate %}
+            {{ (now() + timedelta(hours=hours)).isoformat() }}
+
+          {% else %}
+            {{ none }}
+          {% endif %}
+
+
+      #######################################################################
+      # HUMAN READABLE POOL DECISION
+      #
+      # This is only a recommendation.
+      # It DOES NOT operate the pool switch.
+      #######################################################################
+
+      - name: Solar Controller Pool Decision
+        unique_id: solar_controller_pool_decision
+        state: >
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {% set minimum_soc =
+            states('input_number.solar_minimum_discretionary_soc')
+            | float(50) %}
+
+          {% set excess =
+            states('sensor.solar_controller_forecast_excess')
+            | float(0) %}
+
+          {% set target =
+            today_at(states('input_datetime.solar_battery_full_target')) %}
+
+          {% if soc < minimum_soc %}
+
+            OFF - Battery SOC below minimum
+
+          {% elif excess <= 0 %}
+
+            OFF - No forecast solar excess
+
+          {% elif is_state(
+              'binary_sensor.solar_controller_excessive_grid_import',
+              'on') %}
+
+            OFF - Excessive grid import
+
+          {% elif is_state(
+              'binary_sensor.solar_controller_excessive_battery_discharge',
+              'on') %}
+
+            OFF - Battery supplying optional load
+
+          {% elif now() >= target and soc < 99.5 %}
+
+            OFF - Battery missed full-charge target
+
+          {% elif soc < 99.5
+              and not is_state(
+                'binary_sensor.solar_controller_battery_trajectory_ok',
+                'on') %}
+
+            OFF - Battery trajectory behind target
+
+          {% else %}
+
+            RUN - Conditions good
+
+          {% endif %}
+
+
+  ###########################################################################
+  # BOOLEAN DECISION SENSORS
+  ###########################################################################
+
+  - binary_sensor:
+
+      #######################################################################
+      # EXCESSIVE GRID IMPORT
+      #
+      # Current convention:
+      #
+      # Positive grid power = importing
+      # Negative grid power = exporting
+      #
+      # Must remain above threshold for 3 continuous minutes.
+      #######################################################################
+
+      - name: Solar Controller Excessive Grid Import
+        unique_id: solar_controller_excessive_grid_import
+        state: >
+          {% set grid =
+            states('sensor.combined_solar_system_grid_power')
+            | float(0) %}
+
+          {% set limit =
+            states('input_number.solar_grid_import_limit')
+            | float(1500) %}
+
+          {{ grid > limit }}
+
+        delay_on: "00:03:00"
+
+
+      #######################################################################
+      # EXCESSIVE BATTERY DISCHARGE
+      #
+      # Current convention:
+      #
+      # Positive battery power = discharging
+      # Negative battery power = charging
+      #
+      # We currently allow short / small fluctuations.
+      #
+      # More than 750 W discharge for 3 continuous minutes is considered
+      # undesirable while running an optional load such as the pool.
+      #######################################################################
+
+      - name: Solar Controller Excessive Battery Discharge
+        unique_id: solar_controller_excessive_battery_discharge
+        state: >
+          {% set battery =
+            states('sensor.combined_solar_system_battery_power')
+            | float(0) %}
+
+          {% set limit =
+            states('input_number.solar_battery_discharge_limit')
+            | float(750) %}
+
+          {{ battery > limit }}
+
+        delay_on: "00:03:00"
+
+
+      #######################################################################
+      # BATTERY TRAJECTORY
+      #
+      # Compare:
+      #
+      # ACTUAL charging rate over the last 30 minutes
+      #
+      # versus
+      #
+      # REQUIRED charging rate to reach 100% by the target time.
+      #
+      # delay_off = 10 minutes:
+      #
+      # A short cloud or temporary load won't immediately mark the battery
+      # trajectory as bad.
+      #######################################################################
+
+      - name: Solar Controller Battery Trajectory OK
+        unique_id: solar_controller_battery_trajectory_ok
+        state: >
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {% set actual =
+            states('sensor.solar_controller_battery_soc_rate')
+            | float(0) %}
+
+          {% set required =
+            states('sensor.solar_controller_required_soc_rate')
+            | float(0) %}
+
+          {% set target =
+            today_at(states('input_datetime.solar_battery_full_target')) %}
+
+          {% if soc >= 99.5 %}
+            true
+
+          {% elif now() >= target %}
+            false
+
+          {% else %}
+            {{ actual >= required }}
+
+          {% endif %}
+
+        delay_off: "00:10:00"
+
+
+      #######################################################################
+      # FORECAST SURPLUS AVAILABLE
+      #######################################################################
+
+      - name: Solar Controller Forecast Surplus Available
+        unique_id: solar_controller_forecast_surplus_available
+        state: >
+          {{
+            states('sensor.solar_controller_forecast_excess')
+            | float(0) > 0
+          }}
+
+
+      #######################################################################
+      # GRID SAFE
+      #
+      # Inverse of the delayed excessive-grid-import sensor.
+      #######################################################################
+
+      - name: Solar Controller Grid Safe
+        unique_id: solar_controller_grid_safe
+        state: >
+          {{
+            not is_state(
+              'binary_sensor.solar_controller_excessive_grid_import',
+              'on')
+          }}
+
+
+      #######################################################################
+      # BATTERY DISCHARGE SAFE
+      #######################################################################
+
+      - name: Solar Controller Battery Discharge Safe
+        unique_id: solar_controller_battery_discharge_safe
+        state: >
+          {{
+            not is_state(
+              'binary_sensor.solar_controller_excessive_battery_discharge',
+              'on')
+          }}
+
+
+      #######################################################################
+      # POOL RECOMMENDED
+      #
+      # This is the final YES / NO recommendation.
+      #
+      # It DOES NOT control:
+      #
+      # switch.pool_switch_1
+      #######################################################################
+
+      - name: Solar Controller Pool Recommended
+        unique_id: solar_controller_pool_recommended
+        state: >
+          {% set soc =
+            states('sensor.combined_solar_system_battery_soc')
+            | float(0) %}
+
+          {% set minimum_soc =
+            states('input_number.solar_minimum_discretionary_soc')
+            | float(50) %}
+
+          {% set target =
+            today_at(states('input_datetime.solar_battery_full_target')) %}
+
+          {% set surplus =
+            is_state(
+              'binary_sensor.solar_controller_forecast_surplus_available',
+              'on') %}
+
+          {% set grid_safe =
+            is_state(
+              'binary_sensor.solar_controller_grid_safe',
+              'on') %}
+
+          {% set battery_safe =
+            is_state(
+              'binary_sensor.solar_controller_battery_discharge_safe',
+              'on') %}
+
+          {% set trajectory =
+            is_state(
+              'binary_sensor.solar_controller_battery_trajectory_ok',
+              'on') %}
+
+          {% if soc < minimum_soc %}
+
+            false
+
+          {% elif not surplus %}
+
+            false
+
+          {% elif not grid_safe %}
+
+            false
+
+          {% elif not battery_safe %}
+
+            false
+
+          {% elif now() >= target and soc < 99.5 %}
+
+            false
+
+          {% elif soc < 99.5 and not trajectory %}
+
+            false
+
+          {% else %}
+
+            true
+
+          {% endif %}
