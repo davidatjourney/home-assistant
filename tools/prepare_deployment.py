@@ -1,4 +1,4 @@
-"""Stage explicitly selected configuration files for manual NAS deployment."""
+"""Stage all files needed by the home dashboard for manual NAS copying."""
 
 import argparse
 import hashlib
@@ -11,6 +11,16 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+HOME_DASHBOARD_FILES = (
+    "configuration.yaml",
+    "dashboards/home-controls.yaml",
+    "packages/dashboard_energy.yaml",
+    "www/viewport-fit-card.js",
+    "www/floorplans/house-clean.svg",
+    "www/floorplans/solar-panel.svg",
+    "www/floorplans/pool-stats.svg",
+    "www/floorplans/geyser-stats.svg",
+)
 TOP_LEVEL = {"configuration.yaml", "automations.yaml", "scripts.yaml", "scenes.yaml"}
 DIRECTORIES = {"packages", "blueprints", "themes", "custom_components", "www", "dashboards"}
 SUFFIXES = {
@@ -44,8 +54,8 @@ def source_file(name):
 def verify_deployment(directory):
     """Reject a stale or altered payload before the user copies it to the NAS."""
     directory = directory.resolve()
-    if not directory.is_relative_to((ROOT / ".deploy").resolve()):
-        raise ValueError("Deployment must be inside this workspace's .deploy/ folder")
+    if not directory.is_relative_to((ROOT / "deploy").resolve()):
+        raise ValueError("Deployment must be inside this workspace's deploy/ folder")
     manifest = json.loads((directory / "manifest.json").read_text())
     if manifest.get("deletions"):
         raise ValueError("Automatic server deletions are forbidden")
@@ -76,23 +86,18 @@ def verify_deployment(directory):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("files", nargs="*", help="Individual paths relative to config/")
     parser.add_argument("--verify", type=Path, help="Check a prepared deployment folder before copying")
     args = parser.parse_args()
     if args.verify:
-        if args.files:
-            parser.error("Use either file paths or --verify, not both")
         verify_deployment(args.verify)
         return
-    if not args.files:
-        parser.error("Provide individual configuration files to prepare")
     # Read and validate everything before creating the deployment folder.
     selected = {}
-    for name in args.files:
+    for name in HOME_DASHBOARD_FILES:
         relative, source = source_file(name)
         selected[relative.as_posix()] = source.read_bytes()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
-    destination = ROOT / ".deploy" / stamp
+    destination = ROOT / "deploy" / stamp
     payload = destination / "HomeAssistant"
     manifest = []
     try:
@@ -118,6 +123,12 @@ def main():
     for entry in manifest:
         print(f"  {entry['path']}")
     print(f"Before copying, verify: python3 tools/prepare_deployment.py --verify {destination}")
+    print("After copying: Settings > Tools > YAML > Configuration validation > Check configuration.")
+    print("Open: http://holtz-storage.local:8123/config/tools/yaml")
+    print("If the check fails, save the error and fix it before restarting.")
+    print("If it passes: Settings > three dots (top right) > Restart Home Assistant > Restart Home Assistant.")
+    print("Then hard-refresh the browser (Ctrl+Shift+R) and verify the dashboard.")
+    print("If it is broken, copy the dashboard error; check Settings > System > Logs for server errors.")
 
 
 if __name__ == "__main__":

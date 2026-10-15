@@ -19,5 +19,5 @@ When a task needs information from the running Home Assistant instance that is m
 - Treat `config/` as editable configuration, not a complete or current copy of live server state.
 - Use Git branches for changes and prepare only reviewed files for manual deployment.
 - Keep credentials, databases, logs, caches, and UI-managed `.storage` state out of Git and routine deployment payloads.
-- Compare files that Home Assistant can also edit, such as `automations.yaml`, `scripts.yaml`, and `scenes.yaml`, with the live versions before replacing them.
+- The user copies any server-side configuration edits here before requesting further changes. Edit those local files and provide complete replacements for direct overwrite; do not require manual merging, deployment scripts, or routine live comparisons. Request updated files only when there is evidence of uncopied server edits.
 - The user manually copies files to the Ugreen NAS and restarts Home Assistant through its UI. Do not assume direct NAS access or that a local change has been deployed.

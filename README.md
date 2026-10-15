@@ -1,6 +1,6 @@
 # Home Assistant configuration workspace
 
-This workspace holds configuration copied from the Ugreen NAS. Use a single `config/` folder and Git branches for changes, then manually copy a prepared set of reviewed files back to the NAS.
+This workspace holds configuration copied from the Ugreen NAS. Use a single `config/` folder and Git branches for changes, then manually copy the changed, reviewed files back to the NAS, overwriting their matching destinations.
 
 ## Installation
 
@@ -26,8 +26,8 @@ home_assistant/
   README.md
   .gitignore
   config/                     # Configuration being edited
-  tools/prepare_deployment.py # Prepare selected files for manual copying
-  .deploy/                    # Ignored deployment output
+  tools/prepare_deployment.py # Optional local helper for collecting dashboard files
+  deploy/                    # Ignored deployment output
   .local-snapshot/            # Ignored archive of copied runtime files
 ```
 
@@ -41,36 +41,23 @@ Record each change and deployment in a tracked `DEPLOYMENTS.md`, including:
 - Whether and when the changes were copied to the NAS.
 - Results after restart and the files needed to roll back.
 
-If configuration has changed through the Home Assistant UI, compare the current NAS files with the local files before editing or deploying. In particular, the UI may change `automations.yaml`, `scripts.yaml`, and `scenes.yaml`; these are shared with the server until a stricter ownership rule is established.
-
+The user copies any configuration files changed on the NAS or through Home Assistant back into this workspace before requesting further edits. Make additions here and provide complete replacement files; the user does not need to merge changes manually. Request updated live files only if there is evidence of changes that have not been copied here.
 The baseline contains YAML files, a `packages/solar_controller.yaml` package, and custom Sunsynk and HACS integrations. Their contents have not yet been reviewed: several copied files and directories currently lack local read permissions.
 
 Copied databases, logs, Python caches, `deps/`, and `tts/` were moved out of `config/` into `.local-snapshot/2026-10-14-runtime/`. This local archive makes the cleanup reversible; it is not a verified full backup. Configuration, blueprints, integration source, and the ignored `secrets.yaml` remain in `config/`. This cleanup does not change the live NAS files.
 
-## Preparing and applying changes
+## Applying changes
 
-1. Compare each file to be changed with the current NAS version, and incorporate any newer server edits.
-2. Edit on a Git branch, review and commit the changes, and make a dated backup of the live files that will be replaced.
-3. Prepare only the selected files using the command below. Manually copy those files into their matching locations in `Shared folder/HomeAssistant`. Copy the contents of the prepared `HomeAssistant/` folder, not that enclosing folder itself. Confirm replacement of only the listed files. Do not use a whole-folder replace or mirror/delete operation.
-4. Run Home Assistant's configuration check before restarting. The exact UI procedure remains to be documented.
-5. If validation succeeds, restart through the Home Assistant UI.
-6. Check the affected integrations, entities, automations, and logs, then record the result in `DEPLOYMENTS.md` and tag the deployed commit.
+1. Edit the files in `config/` on a Git branch and review the changes. These are complete replacement files, including the additions made here.
+2. Back up the destination files, then copy only the changed files directly from `config/` into their matching locations in `Shared folder/HomeAssistant`, overwriting those files. Create subfolders as needed. No manual merge or deployment script is required.
+3. Open **Settings → Tools → YAML** ([direct link](http://holtz-storage.local:8123/config/tools/yaml)). Under **Configuration validation**, select **Check configuration** and wait for the result. If it fails, keep the error text and fix the reported issue before restarting. If it passes, go to **Settings → ⋮ (top right) → Restart Home Assistant**, then select **Restart Home Assistant**.
+4. Verify the affected controls and readings, then record the deployment result.
 
-For example, to prepare only the solar controller package, run from this workspace:
+The user copies any server-side configuration edits here before further work, so routine deployment does not require a separate live comparison. If an uncopied server edit is discovered, obtain that updated file before preparing its replacement.
 
-```sh
-python3 tools/prepare_deployment.py packages/solar_controller.yaml
-```
+`python3 tools/prepare_deployment.py` is an optional local helper that always collects all eight files needed by the home dashboard, including its sensor package and SVGs, into `deploy/` and records their hashes. No file list is required or accepted. Keep the script's file list updated when dashboard dependencies change. Neither the script nor its manifest is needed on the NAS.
 
-The tool creates `.deploy/<timestamp>/HomeAssistant/` with only the explicitly selected files and writes a sibling `manifest.json` listing their paths and hashes. It does not connect to the NAS or delete server files. Paths are relative to `config/`. It refuses hidden paths, secrets, runtime files, folders, and symbolic links. It permits the four top-level configuration YAML files and selected source/asset file types under `packages`, `blueprints`, `themes`, `custom_components`, and `www`.
-
-The deployment allowlist is separate from `.gitignore`: being tracked in Git does not automatically make a file eligible for deployment. Review selected file contents for embedded credentials. Handle deliberate deletions separately, with an explicit record and backup. Custom integration upgrades that require removing old files need a separate reviewed procedure.
-
-The tool packages the current local files. Prepare from a clean checkout of the intended commit so the payload corresponds to the version recorded in Git. Local copied files must be readable before the tool can package them.
-
-If validation fails, restore or correct the copied files before restarting. If the change fails after restart, restore the backed-up files and restart again.
-
-Do not deploy the local snapshot wholesale over the running installation. Database files, database journals, logs, caches, and `.storage` are runtime state and should not be overwritten during routine configuration changes. A full restore needs its own procedure.
+Copy individual changed files, not the entire `config/` folder. Leave secrets, `.storage`, databases, logs and caches on the NAS. If a change fails, restore the backed-up files and restart.
 
 ## Git
 
@@ -89,6 +76,5 @@ The NAS has redundant hard drives. Redundancy protects against some drive failur
 Still to document:
 
 - Backup location, schedule, and restore procedure.
-- Configuration validation procedure.
 - Main devices, integrations, and automation requirements.
 - The first planned adjustment.

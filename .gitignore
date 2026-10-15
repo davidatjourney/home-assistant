@@ -29,7 +29,7 @@ secrets.yaml
 deps/
 tts/
 backups/
-/.deploy/
+/deploy/
 /.local-snapshot/
 
 # Python caches and local environments

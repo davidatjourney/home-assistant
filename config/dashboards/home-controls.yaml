@@ -212,660 +212,664 @@ views:
       - condition: screen
         media_query: '(min-width: 1280px)'
       card:
-        type: picture-elements
-        image: /local/floorplans/house-clean.svg
-        elements:
-        - type: state-icon
-          entity: climate.main_bedroom_hoof_slaapkamer_aircon
-          icon: mdi:air-conditioner
-          title: Main bedroom aircon
-          state_color: true
-          tap_action:
-            action: more-info
-          hold_action:
-            action: more-info
-          style:
-            left: 29.8306%
-            top: 25.1193%
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 50%
-            padding: 12px
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-            --mdc-icon-size: 28px
-            color: '#334155'
-        - type: state-icon
-          entity: climate.dave_en_miks_dave_en_miks_air_conditioner
-          icon: mdi:air-conditioner
-          title: Mika and Dave aircon
-          state_color: true
-          tap_action:
-            action: more-info
-          hold_action:
-            action: more-info
-          style:
-            left: 52.4252%
-            top: 47.1193%
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 50%
-            padding: 12px
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-            --mdc-icon-size: 28px
-            color: '#334155'
-        - type: state-icon
-          entity: climate.bedroom_kitchen_daniel_aircon
-          icon: mdi:air-conditioner
-          title: Daniël aircon
-          state_color: true
-          tap_action:
-            action: more-info
-          hold_action:
-            action: more-info
-          style:
-            left: 73.8901%
-            top: 47.1193%
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 50%
-            padding: 12px
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-            --mdc-icon-size: 28px
-            color: '#334155'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state: 'on'
+        type: custom:viewport-fit-card
+        width: 1110
+        height: 1140
+        card:
+          type: picture-elements
+          image: /local/floorplans/house-clean.svg
           elements:
           - type: state-icon
-            entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — left of door (shared switch)
-            state_color: false
+            entity: climate.main_bedroom_hoof_slaapkamer_aircon
+            icon: mdi:air-conditioner
+            title: Main bedroom aircon
+            state_color: true
             tap_action:
-              action: toggle
+              action: more-info
             hold_action:
+              action: more-info
+            style:
+              left: 29.8306%
+              top: 25.1193%
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 50%
+              padding: 12px
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+              --mdc-icon-size: 28px
+              color: '#334155'
+          - type: state-icon
+            entity: climate.dave_en_miks_dave_en_miks_air_conditioner
+            icon: mdi:air-conditioner
+            title: Mika and Dave aircon
+            state_color: true
+            tap_action:
+              action: more-info
+            hold_action:
+              action: more-info
+            style:
+              left: 52.4252%
+              top: 47.1193%
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 50%
+              padding: 12px
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+              --mdc-icon-size: 28px
+              color: '#334155'
+          - type: state-icon
+            entity: climate.bedroom_kitchen_daniel_aircon
+            icon: mdi:air-conditioner
+            title: Daniël aircon
+            state_color: true
+            tap_action:
+              action: more-info
+            hold_action:
+              action: more-info
+            style:
+              left: 73.8901%
+              top: 47.1193%
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 50%
+              padding: 12px
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+              --mdc-icon-size: 28px
+              color: '#334155'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state: 'on'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — left of door (shared switch)
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 80.6685%
+                top: 76.2692%
+                background: '#fff2bf'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#b45309'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — left of door (shared switch)
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 80.6685%
+                top: 76.2692%
+                background: '#f1f5f9'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#64748b'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state_not: 'on'
+            - entity: switch.garage_ligte_switch_1
+              state_not: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — left of door (shared switch)
+              state_color: false
+              tap_action:
+                action: more-info
+              hold_action:
+                action: more-info
+              style:
+                left: 80.6685%
+                top: 76.2692%
+                background: '#fee2e2'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#991b1b'
+          - type: state-label
+            entity: switch.garage_ligte_switch_1
+            title: Device switch state
+            tap_action:
               action: more-info
             style:
               left: 80.6685%
-              top: 76.2692%
-              background: '#fff2bf'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#b45309'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state: 'off'
-          elements:
-          - type: state-icon
+              top: 79.7893%
+              font-size: 11px
+              font-weight: '600'
+              background: '#ffffff'
+              color: '#475569'
+              border-radius: 6px
+              padding: 2px 5px
+          - type: conditional
+            conditions:
+            - entity: switch.pool_switch_1
+              state: 'on'
+            elements:
+            - type: state-icon
+              entity: switch.pool_switch_1
+              icon: mdi:pool
+              title: Pool
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 10.0604%
+                top: 70.2193%
+                background: '#fff2bf'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#b45309'
+          - type: conditional
+            conditions:
+            - entity: switch.pool_switch_1
+              state: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.pool_switch_1
+              icon: mdi:pool
+              title: Pool
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 10.0604%
+                top: 70.2193%
+                background: '#f1f5f9'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#64748b'
+          - type: conditional
+            conditions:
+            - entity: switch.pool_switch_1
+              state_not: 'on'
+            - entity: switch.pool_switch_1
+              state_not: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.pool_switch_1
+              icon: mdi:pool
+              title: Pool
+              state_color: false
+              tap_action:
+                action: more-info
+              hold_action:
+                action: more-info
+              style:
+                left: 10.0604%
+                top: 70.2193%
+                background: '#fee2e2'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#991b1b'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state: 'on'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — right of door (shared switch)
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 94.7901%
+                top: 76.2692%
+                background: '#fff2bf'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#b45309'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — right of door (shared switch)
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 94.7901%
+                top: 76.2692%
+                background: '#f1f5f9'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#64748b'
+          - type: conditional
+            conditions:
+            - entity: switch.garage_ligte_switch_1
+              state_not: 'on'
+            - entity: switch.garage_ligte_switch_1
+              state_not: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.garage_ligte_switch_1
+              icon: mdi:outdoor-lamp
+              title: Garage lights — right of door (shared switch)
+              state_color: false
+              tap_action:
+                action: more-info
+              hold_action:
+                action: more-info
+              style:
+                left: 94.7901%
+                top: 76.2692%
+                background: '#fee2e2'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#991b1b'
+          - type: state-label
             entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — left of door (shared switch)
-            state_color: false
+            title: Device switch state
             tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              left: 80.6685%
-              top: 76.2692%
-              background: '#f1f5f9'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#64748b'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state_not: 'on'
-          - entity: switch.garage_ligte_switch_1
-            state_not: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — left of door (shared switch)
-            state_color: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: more-info
-            style:
-              left: 80.6685%
-              top: 76.2692%
-              background: '#fee2e2'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#991b1b'
-        - type: state-label
-          entity: switch.garage_ligte_switch_1
-          title: Device switch state
-          tap_action:
-            action: more-info
-          style:
-            left: 80.6685%
-            top: 79.7893%
-            font-size: 11px
-            font-weight: '600'
-            background: '#ffffff'
-            color: '#475569'
-            border-radius: 6px
-            padding: 2px 5px
-        - type: conditional
-          conditions:
-          - entity: switch.pool_switch_1
-            state: 'on'
-          elements:
-          - type: state-icon
-            entity: switch.pool_switch_1
-            icon: mdi:pool
-            title: Pool
-            state_color: false
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              left: 10.0604%
-              top: 70.2193%
-              background: '#fff2bf'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#b45309'
-        - type: conditional
-          conditions:
-          - entity: switch.pool_switch_1
-            state: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.pool_switch_1
-            icon: mdi:pool
-            title: Pool
-            state_color: false
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              left: 10.0604%
-              top: 70.2193%
-              background: '#f1f5f9'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#64748b'
-        - type: conditional
-          conditions:
-          - entity: switch.pool_switch_1
-            state_not: 'on'
-          - entity: switch.pool_switch_1
-            state_not: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.pool_switch_1
-            icon: mdi:pool
-            title: Pool
-            state_color: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: more-info
-            style:
-              left: 10.0604%
-              top: 70.2193%
-              background: '#fee2e2'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#991b1b'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state: 'on'
-          elements:
-          - type: state-icon
-            entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — right of door (shared switch)
-            state_color: false
-            tap_action:
-              action: toggle
-            hold_action:
               action: more-info
             style:
               left: 94.7901%
-              top: 76.2692%
-              background: '#fff2bf'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#b45309'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — right of door (shared switch)
-            state_color: false
+              top: 79.7893%
+              font-size: 11px
+              font-weight: '600'
+              background: '#ffffff'
+              color: '#475569'
+              border-radius: 6px
+              padding: 2px 5px
+          - type: conditional
+            conditions:
+            - entity: switch.geyser_switch_1
+              state: 'on'
+            elements:
+            - type: state-icon
+              entity: switch.geyser_switch_1
+              icon: mdi:water-boiler
+              title: Roof geyser above bathroom
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 46.7766%
+                top: 20.1693%
+                background: '#fff2bf'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#b45309'
+          - type: conditional
+            conditions:
+            - entity: switch.geyser_switch_1
+              state: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.geyser_switch_1
+              icon: mdi:water-boiler
+              title: Roof geyser above bathroom
+              state_color: false
+              tap_action:
+                action: toggle
+              hold_action:
+                action: more-info
+              style:
+                left: 46.7766%
+                top: 20.1693%
+                background: '#f1f5f9'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#64748b'
+          - type: conditional
+            conditions:
+            - entity: switch.geyser_switch_1
+              state_not: 'on'
+            - entity: switch.geyser_switch_1
+              state_not: 'off'
+            elements:
+            - type: state-icon
+              entity: switch.geyser_switch_1
+              icon: mdi:water-boiler
+              title: Roof geyser above bathroom
+              state_color: false
+              tap_action:
+                action: more-info
+              hold_action:
+                action: more-info
+              style:
+                left: 46.7766%
+                top: 20.1693%
+                background: '#fee2e2'
+                border-radius: 50%
+                padding: 12px
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                --mdc-icon-size: 28px
+                color: '#991b1b'
+          - type: image
+            image: /local/floorplans/solar-panel.svg
+            aspect_ratio: 500:340
+            filter: none
             tap_action:
-              action: toggle
+              action: none
             hold_action:
+              action: none
+            style:
+              left: 53.5550%
+              top: 79.0193%
+              width: 45.1892%
+              pointer-events: none
+          - type: state-label
+            entity: sensor.combined_solar_system_pv_total_power
+            title: Solar now
+            tap_action:
               action: more-info
             style:
-              left: 94.7901%
-              top: 76.2692%
-              background: '#f1f5f9'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#64748b'
-        - type: conditional
-          conditions:
-          - entity: switch.garage_ligte_switch_1
-            state_not: 'on'
-          - entity: switch.garage_ligte_switch_1
-            state_not: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.garage_ligte_switch_1
-            icon: mdi:outdoor-lamp
-            title: Garage lights — right of door (shared switch)
-            state_color: false
+              left: 38.4923%
+              top: 72.3313%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_load_total_power
+            title: House now
             tap_action:
-              action: more-info
-            hold_action:
               action: more-info
             style:
-              left: 94.7901%
-              top: 76.2692%
-              background: '#fee2e2'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#991b1b'
-        - type: state-label
-          entity: switch.garage_ligte_switch_1
-          title: Device switch state
-          tap_action:
-            action: more-info
-          style:
-            left: 94.7901%
-            top: 79.7893%
-            font-size: 11px
-            font-weight: '600'
-            background: '#ffffff'
-            color: '#475569'
-            border-radius: 6px
-            padding: 2px 5px
-        - type: conditional
-          conditions:
-          - entity: switch.geyser_switch_1
-            state: 'on'
-          elements:
-          - type: state-icon
-            entity: switch.geyser_switch_1
-            icon: mdi:water-boiler
-            title: Roof geyser above bathroom
-            state_color: false
+              left: 53.5550%
+              top: 72.3313%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_battery_soc
+            title: Battery
             tap_action:
-              action: toggle
-            hold_action:
+              action: more-info
+            style:
+              left: 68.6176%
+              top: 72.3313%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.home_dashboard_battery_flow
+            title: Battery flow
+            tap_action:
+              action: more-info
+            style:
+              left: 38.4923%
+              top: 77.0833%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.home_dashboard_grid_flow
+            title: Grid flow
+            tap_action:
+              action: more-info
+            style:
+              left: 53.5550%
+              top: 77.0833%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_pv_generation_today
+            title: Solar generated
+            tap_action:
+              action: more-info
+            style:
+              left: 38.4923%
+              top: 85.9713%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_load_energy_used_today
+            title: House used
+            tap_action:
+              action: more-info
+            style:
+              left: 53.5550%
+              top: 85.9713%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_grid_import_today
+            title: Grid imported
+            tap_action:
+              action: more-info
+            style:
+              left: 68.6176%
+              top: 85.9713%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_grid_export_today
+            title: Grid exported
+            tap_action:
+              action: more-info
+            style:
+              left: 38.4923%
+              top: 91.0753%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_battery_charge_today
+            title: Battery charged
+            tap_action:
+              action: more-info
+            style:
+              left: 53.5550%
+              top: 91.0753%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.combined_solar_system_battery_discharge_today
+            title: Battery discharged
+            tap_action:
+              action: more-info
+            style:
+              left: 68.6176%
+              top: 91.0753%
+              color: '#0f172a'
+              font-size: 18px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: climate.main_bedroom_hoof_slaapkamer_aircon
+            attribute: current_temperature
+            suffix: °C
+            title: Room temperature reported by aircon
+            tap_action:
+              action: more-info
+            style:
+              left: 35.4793%
+              top: 25.1193%
+              color: '#0f172a'
+              font-size: 16px
+              font-weight: '600'
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 10px
+              padding: 4px 6px
+              box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
+          - type: state-label
+            entity: climate.dave_en_miks_dave_en_miks_air_conditioner
+            attribute: current_temperature
+            suffix: °C
+            title: Room temperature reported by aircon
+            tap_action:
+              action: more-info
+            style:
+              left: 58.0739%
+              top: 47.1193%
+              color: '#0f172a'
+              font-size: 16px
+              font-weight: '600'
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 10px
+              padding: 4px 6px
+              box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
+          - type: state-label
+            entity: climate.bedroom_kitchen_daniel_aircon
+            attribute: current_temperature
+            suffix: °C
+            title: Room temperature reported by aircon
+            tap_action:
+              action: more-info
+            style:
+              left: 67.6766%
+              top: 47.1193%
+              color: '#0f172a'
+              font-size: 16px
+              font-weight: '600'
+              background: rgba(255, 255, 255, 0.96)
+              border-radius: 10px
+              padding: 4px 6px
+              box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
+          - type: image
+            image: /local/floorplans/pool-stats.svg
+            aspect_ratio: '2:1'
+            filter: none
+            tap_action:
+              action: none
+            style:
+              left: 10.0604%
+              top: 94.3246%
+              width: 18.0757%
+              pointer-events: none
+          - type: image
+            image: /local/floorplans/geyser-stats.svg
+            aspect_ratio: '2:1'
+            filter: none
+            tap_action:
+              action: none
+            style:
+              left: 46.7766%
+              top: 8.6193%
+              width: 18.0757%
+              pointer-events: none
+          - type: state-label
+            entity: sensor.pool_power
+            title: Pool power now
+            prefix: 'Now: '
+            tap_action:
+              action: more-info
+            style:
+              left: 10.0604%
+              top: 94.2366%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.solar_pool_energy_today
+            title: Pool energy today
+            prefix: 'Today: '
+            tap_action:
+              action: more-info
+            style:
+              left: 10.0604%
+              top: 96.8765%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.geyser_power
+            title: Geyser power now
+            prefix: 'Now: '
+            tap_action:
               action: more-info
             style:
               left: 46.7766%
-              top: 20.1693%
-              background: '#fff2bf'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#b45309'
-        - type: conditional
-          conditions:
-          - entity: switch.geyser_switch_1
-            state: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.geyser_switch_1
-            icon: mdi:water-boiler
-            title: Roof geyser above bathroom
-            state_color: false
+              top: 8.5313%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
+          - type: state-label
+            entity: sensor.geyser_energy_today
+            title: Geyser energy today
+            prefix: 'Today: '
             tap_action:
-              action: toggle
-            hold_action:
               action: more-info
             style:
               left: 46.7766%
-              top: 20.1693%
-              background: '#f1f5f9'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#64748b'
-        - type: conditional
-          conditions:
-          - entity: switch.geyser_switch_1
-            state_not: 'on'
-          - entity: switch.geyser_switch_1
-            state_not: 'off'
-          elements:
-          - type: state-icon
-            entity: switch.geyser_switch_1
-            icon: mdi:water-boiler
-            title: Roof geyser above bathroom
-            state_color: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: more-info
-            style:
-              left: 46.7766%
-              top: 20.1693%
-              background: '#fee2e2'
-              border-radius: 50%
-              padding: 12px
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-              --mdc-icon-size: 28px
-              color: '#991b1b'
-        - type: image
-          image: /local/floorplans/solar-panel.svg
-          aspect_ratio: 500:340
-          filter: none
-          tap_action:
-            action: none
-          hold_action:
-            action: none
-          style:
-            left: 53.5550%
-            top: 79.0193%
-            width: 45.1892%
-            pointer-events: none
-        - type: state-label
-          entity: sensor.combined_solar_system_pv_total_power
-          title: Solar now
-          tap_action:
-            action: more-info
-          style:
-            left: 38.4923%
-            top: 72.3313%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_load_total_power
-          title: House now
-          tap_action:
-            action: more-info
-          style:
-            left: 53.5550%
-            top: 72.3313%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_battery_soc
-          title: Battery
-          tap_action:
-            action: more-info
-          style:
-            left: 68.6176%
-            top: 72.3313%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.home_dashboard_battery_flow
-          title: Battery flow
-          tap_action:
-            action: more-info
-          style:
-            left: 38.4923%
-            top: 77.0833%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.home_dashboard_grid_flow
-          title: Grid flow
-          tap_action:
-            action: more-info
-          style:
-            left: 53.5550%
-            top: 77.0833%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_pv_generation_today
-          title: Solar generated
-          tap_action:
-            action: more-info
-          style:
-            left: 38.4923%
-            top: 85.9713%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_load_energy_used_today
-          title: House used
-          tap_action:
-            action: more-info
-          style:
-            left: 53.5550%
-            top: 85.9713%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_grid_import_today
-          title: Grid imported
-          tap_action:
-            action: more-info
-          style:
-            left: 68.6176%
-            top: 85.9713%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_grid_export_today
-          title: Grid exported
-          tap_action:
-            action: more-info
-          style:
-            left: 38.4923%
-            top: 91.0753%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_battery_charge_today
-          title: Battery charged
-          tap_action:
-            action: more-info
-          style:
-            left: 53.5550%
-            top: 91.0753%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.combined_solar_system_battery_discharge_today
-          title: Battery discharged
-          tap_action:
-            action: more-info
-          style:
-            left: 68.6176%
-            top: 91.0753%
-            color: '#0f172a'
-            font-size: 18px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: climate.main_bedroom_hoof_slaapkamer_aircon
-          attribute: current_temperature
-          suffix: °C
-          title: Room temperature reported by aircon
-          tap_action:
-            action: more-info
-          style:
-            left: 35.4793%
-            top: 25.1193%
-            color: '#0f172a'
-            font-size: 16px
-            font-weight: '600'
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 10px
-            padding: 4px 6px
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-        - type: state-label
-          entity: climate.dave_en_miks_dave_en_miks_air_conditioner
-          attribute: current_temperature
-          suffix: °C
-          title: Room temperature reported by aircon
-          tap_action:
-            action: more-info
-          style:
-            left: 58.0739%
-            top: 47.1193%
-            color: '#0f172a'
-            font-size: 16px
-            font-weight: '600'
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 10px
-            padding: 4px 6px
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-        - type: state-label
-          entity: climate.bedroom_kitchen_daniel_aircon
-          attribute: current_temperature
-          suffix: °C
-          title: Room temperature reported by aircon
-          tap_action:
-            action: more-info
-          style:
-            left: 67.6766%
-            top: 47.1193%
-            color: '#0f172a'
-            font-size: 16px
-            font-weight: '600'
-            background: rgba(255, 255, 255, 0.96)
-            border-radius: 10px
-            padding: 4px 6px
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-        - type: image
-          image: /local/floorplans/pool-stats.svg
-          aspect_ratio: '2:1'
-          filter: none
-          tap_action:
-            action: none
-          style:
-            left: 10.0604%
-            top: 94.3246%
-            width: 18.0757%
-            pointer-events: none
-        - type: image
-          image: /local/floorplans/geyser-stats.svg
-          aspect_ratio: '2:1'
-          filter: none
-          tap_action:
-            action: none
-          style:
-            left: 46.7766%
-            top: 8.6193%
-            width: 18.0757%
-            pointer-events: none
-        - type: state-label
-          entity: sensor.pool_power
-          title: Pool power now
-          prefix: 'Now: '
-          tap_action:
-            action: more-info
-          style:
-            left: 10.0604%
-            top: 94.2366%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.solar_pool_energy_today
-          title: Pool energy today
-          prefix: 'Today: '
-          tap_action:
-            action: more-info
-          style:
-            left: 10.0604%
-            top: 96.8765%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.geyser_power
-          title: Geyser power now
-          prefix: 'Now: '
-          tap_action:
-            action: more-info
-          style:
-            left: 46.7766%
-            top: 8.5313%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
-        - type: state-label
-          entity: sensor.geyser_energy_today
-          title: Geyser energy today
-          prefix: 'Today: '
-          tap_action:
-            action: more-info
-          style:
-            left: 46.7766%
-            top: 11.1713%
-            color: '#0f172a'
-            font-size: 14px
-            font-weight: '600'
-            background: transparent
-            padding: '0'
+              top: 11.1713%
+              color: '#0f172a'
+              font-size: 14px
+              font-weight: '600'
+              background: transparent
+              padding: '0'
     - type: conditional
       conditions:
       - condition: screen
