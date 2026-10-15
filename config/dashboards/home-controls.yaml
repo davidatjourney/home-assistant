@@ -8,6 +8,17 @@ views:
   sections:
   - type: grid
     cards:
+    - type: weather-forecast
+      entity: weather.forecast_home
+      name: Home weather
+      show_current: true
+      show_forecast: true
+      forecast_type: daily
+      grid_options:
+        columns: 12
+        rows: auto
+  - type: grid
+    cards:
     - type: heading
       heading: Combined solar
       icon: mdi:solar-power
@@ -95,6 +106,7 @@ views:
       heading: Around the house
       icon: mdi:home-outline
     - type: tile
+      color: green
       entity: switch.garage_ligte_switch_1
       name: Garage lights
       icon: mdi:outdoor-lamp
@@ -105,6 +117,7 @@ views:
         columns: 12
         rows: 1
     - type: tile
+      color: green
       entity: switch.geyser_switch_1
       name: Geyser
       icon: mdi:water-boiler
@@ -115,6 +128,7 @@ views:
         columns: 12
         rows: 1
     - type: tile
+      color: green
       entity: switch.pool_switch_1
       name: Pool
       icon: mdi:pool
@@ -219,6 +233,19 @@ views:
           type: picture-elements
           image: /local/floorplans/house-clean.svg
           elements:
+          - type: custom:home-weather
+            entity: weather.forecast_home
+            name: Home weather
+            style:
+              left: 19.0000%
+              top: 2.0000%
+              width: 34.0000%
+              transform: translate(-50%, 0)
+              --ha-card-background: '#ffffff'
+              --ha-card-border-color: '#dce4ec'
+              --ha-card-border-radius: 16px
+              --primary-text-color: '#172b40'
+              --secondary-text-color: '#607286'
           - type: state-icon
             entity: climate.main_bedroom_hoof_slaapkamer_aircon
             icon: mdi:air-conditioner
@@ -229,7 +256,7 @@ views:
             hold_action:
               action: more-info
             style:
-              left: 29.8306%
+              left: 27.5000%
               top: 25.1193%
               background: rgba(255, 255, 255, 0.96)
               border-radius: 50%
@@ -237,6 +264,12 @@ views:
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
               --mdc-icon-size: 28px
               color: '#334155'
+              --state-climate-heat-color: 'var(--green-color, #4caf50)'
+              --state-climate-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-heat-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-auto-color: 'var(--green-color, #4caf50)'
+              --state-climate-dry-color: 'var(--green-color, #4caf50)'
+              --state-climate-fan-only-color: 'var(--green-color, #4caf50)'
           - type: state-icon
             entity: climate.dave_en_miks_dave_en_miks_air_conditioner
             icon: mdi:air-conditioner
@@ -247,14 +280,20 @@ views:
             hold_action:
               action: more-info
             style:
-              left: 52.4252%
-              top: 47.1193%
+              left: 50.4505%
+              top: 49.1228%
               background: rgba(255, 255, 255, 0.96)
               border-radius: 50%
               padding: 12px
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
               --mdc-icon-size: 28px
               color: '#334155'
+              --state-climate-heat-color: 'var(--green-color, #4caf50)'
+              --state-climate-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-heat-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-auto-color: 'var(--green-color, #4caf50)'
+              --state-climate-dry-color: 'var(--green-color, #4caf50)'
+              --state-climate-fan-only-color: 'var(--green-color, #4caf50)'
           - type: state-icon
             entity: climate.bedroom_kitchen_daniel_aircon
             icon: mdi:air-conditioner
@@ -265,14 +304,20 @@ views:
             hold_action:
               action: more-info
             style:
-              left: 73.8901%
-              top: 47.1193%
+              left: 74.2342%
+              top: 49.1228%
               background: rgba(255, 255, 255, 0.96)
               border-radius: 50%
               padding: 12px
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
               --mdc-icon-size: 28px
               color: '#334155'
+              --state-climate-heat-color: 'var(--green-color, #4caf50)'
+              --state-climate-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-heat-cool-color: 'var(--green-color, #4caf50)'
+              --state-climate-auto-color: 'var(--green-color, #4caf50)'
+              --state-climate-dry-color: 'var(--green-color, #4caf50)'
+              --state-climate-fan-only-color: 'var(--green-color, #4caf50)'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -290,12 +335,12 @@ views:
               style:
                 left: 80.6685%
                 top: 76.2692%
-                background: '#fff2bf'
+                background: rgba(76, 175, 80, 0.2)
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: '#b45309'
+                color: 'var(--green-color, #4caf50)'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -344,7 +389,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
-          - type: state-label
+          - type: custom:home-reading
             entity: switch.garage_ligte_switch_1
             title: Device switch state
             tap_action:
@@ -375,12 +420,12 @@ views:
               style:
                 left: 10.0604%
                 top: 70.2193%
-                background: '#fff2bf'
+                background: rgba(76, 175, 80, 0.2)
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: '#b45309'
+                color: 'var(--green-color, #4caf50)'
           - type: conditional
             conditions:
             - entity: switch.pool_switch_1
@@ -446,12 +491,12 @@ views:
               style:
                 left: 94.7901%
                 top: 76.2692%
-                background: '#fff2bf'
+                background: rgba(76, 175, 80, 0.2)
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: '#b45309'
+                color: 'var(--green-color, #4caf50)'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -500,7 +545,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
-          - type: state-label
+          - type: custom:home-reading
             entity: switch.garage_ligte_switch_1
             title: Device switch state
             tap_action:
@@ -531,12 +576,12 @@ views:
               style:
                 left: 46.7766%
                 top: 20.1693%
-                background: '#fff2bf'
+                background: rgba(76, 175, 80, 0.2)
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: '#b45309'
+                color: 'var(--green-color, #4caf50)'
           - type: conditional
             conditions:
             - entity: switch.geyser_switch_1
@@ -585,8 +630,36 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
+          - type: custom:home-reading
+            entity: switch.geyser_switch_1
+            title: Geyser switch state
+            tap_action:
+              action: more-info
+            style:
+              left: 52.4252%
+              top: 20.1693%
+              font-size: 12px
+              font-weight: '600'
+              background: '#ffffff'
+              color: '#475569'
+              border-radius: 6px
+              padding: 2px 5px
+          - type: custom:home-reading
+            entity: switch.pool_switch_1
+            title: Pool switch state
+            tap_action:
+              action: more-info
+            style:
+              left: 15.7091%
+              top: 70.2193%
+              font-size: 12px
+              font-weight: '600'
+              background: '#ffffff'
+              color: '#475569'
+              border-radius: 6px
+              padding: 2px 5px
           - type: image
-            image: /local/floorplans/solar-panel.svg
+            image: /local/floorplans/solar-panel.svg?v=2
             aspect_ratio: 500:340
             filter: none
             tap_action:
@@ -598,150 +671,161 @@ views:
               top: 79.0193%
               width: 45.1892%
               pointer-events: none
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_pv_total_power
             title: Solar now
             tap_action:
               action: more-info
             style:
-              left: 38.4923%
-              top: 72.3313%
-              color: '#0f172a'
+              left: 39.4560%
+              top: 71.5129%
+              color: '#936311'
               font-size: 18px
-              font-weight: '600'
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_load_total_power
             title: House now
             tap_action:
               action: more-info
             style:
               left: 53.5550%
-              top: 72.3313%
-              color: '#0f172a'
+              top: 71.5129%
+              color: '#243b53'
               font-size: 18px
-              font-weight: '600'
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_battery_soc
             title: Battery
             tap_action:
               action: more-info
             style:
-              left: 68.6176%
-              top: 72.3313%
-              color: '#0f172a'
+              left: 67.6540%
+              top: 71.5129%
+              color: '#327147'
               font-size: 18px
-              font-weight: '600'
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.home_dashboard_battery_flow
             title: Battery flow
             tap_action:
               action: more-info
             style:
-              left: 38.4923%
-              top: 77.0833%
-              color: '#0f172a'
-              font-size: 14px
-              font-weight: '600'
+              left: 42.8903%
+              top: 76.4189%
+              color: '#243b53'
+              font-size: 13px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.home_dashboard_grid_flow
             title: Grid flow
             tap_action:
               action: more-info
             style:
-              left: 53.5550%
-              top: 77.0833%
-              color: '#0f172a'
-              font-size: 14px
-              font-weight: '600'
+              left: 64.2197%
+              top: 76.4189%
+              color: '#243b53'
+              font-size: 13px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_pv_generation_today
             title: Solar generated
             tap_action:
               action: more-info
             style:
-              left: 38.4923%
-              top: 85.9713%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              left: 39.4560%
+              top: 84.4225%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_load_energy_used_today
             title: House used
             tap_action:
               action: more-info
             style:
               left: 53.5550%
-              top: 85.9713%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              top: 84.4225%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_grid_import_today
             title: Grid imported
             tap_action:
               action: more-info
             style:
-              left: 68.6176%
-              top: 85.9713%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              left: 67.6540%
+              top: 84.4225%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_grid_export_today
             title: Grid exported
             tap_action:
               action: more-info
             style:
-              left: 38.4923%
-              top: 91.0753%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              left: 39.4560%
+              top: 90.4065%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_battery_charge_today
             title: Battery charged
             tap_action:
               action: more-info
             style:
               left: 53.5550%
-              top: 91.0753%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              top: 90.4065%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.combined_solar_system_battery_discharge_today
             title: Battery discharged
             tap_action:
               action: more-info
             style:
-              left: 68.6176%
-              top: 91.0753%
-              color: '#0f172a'
-              font-size: 18px
-              font-weight: '600'
+              left: 67.6540%
+              top: 90.4065%
+              color: '#243b53'
+              font-size: 16px
+              font-weight: '700'
+              white-space: nowrap
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: climate.main_bedroom_hoof_slaapkamer_aircon
             attribute: current_temperature
             suffix: °C
@@ -749,7 +833,7 @@ views:
             tap_action:
               action: more-info
             style:
-              left: 35.4793%
+              left: 34.7000%
               top: 25.1193%
               color: '#0f172a'
               font-size: 16px
@@ -758,7 +842,7 @@ views:
               border-radius: 10px
               padding: 4px 6px
               box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-          - type: state-label
+          - type: custom:home-reading
             entity: climate.dave_en_miks_dave_en_miks_air_conditioner
             attribute: current_temperature
             suffix: °C
@@ -766,8 +850,8 @@ views:
             tap_action:
               action: more-info
             style:
-              left: 58.0739%
-              top: 47.1193%
+              left: 58.1982%
+              top: 49.1228%
               color: '#0f172a'
               font-size: 16px
               font-weight: '600'
@@ -775,7 +859,7 @@ views:
               border-radius: 10px
               padding: 4px 6px
               box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-          - type: state-label
+          - type: custom:home-reading
             entity: climate.bedroom_kitchen_daniel_aircon
             attribute: current_temperature
             suffix: °C
@@ -783,8 +867,8 @@ views:
             tap_action:
               action: more-info
             style:
-              left: 67.6766%
-              top: 47.1193%
+              left: 67.0270%
+              top: 49.1228%
               color: '#0f172a'
               font-size: 16px
               font-weight: '600'
@@ -814,7 +898,7 @@ views:
               top: 8.6193%
               width: 18.0757%
               pointer-events: none
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.pool_power
             title: Pool power now
             prefix: 'Now: '
@@ -828,7 +912,7 @@ views:
               font-weight: '600'
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.solar_pool_energy_today
             title: Pool energy today
             prefix: 'Today: '
@@ -842,7 +926,7 @@ views:
               font-weight: '600'
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.geyser_power
             title: Geyser power now
             prefix: 'Now: '
@@ -856,7 +940,7 @@ views:
               font-weight: '600'
               background: transparent
               padding: '0'
-          - type: state-label
+          - type: custom:home-reading
             entity: sensor.geyser_energy_today
             title: Geyser energy today
             prefix: 'Today: '
@@ -877,41 +961,53 @@ views:
       card:
         type: vertical-stack
         cards:
+        - type: weather-forecast
+          entity: weather.forecast_home
+          name: Home weather
+          show_current: true
+          show_forecast: true
+          forecast_type: daily
         - type: grid
           columns: 2
           square: false
           cards:
           - type: tile
+            color: green
             entity: switch.garage_ligte_switch_1
             name: Garage lights
             icon: mdi:outdoor-lamp
             features:
             - type: toggle
           - type: tile
+            color: green
             entity: switch.geyser_switch_1
             name: Geyser
             icon: mdi:water-boiler
             features:
             - type: toggle
           - type: tile
+            color: green
             entity: switch.pool_switch_1
             name: Pool
             icon: mdi:pool
             features:
             - type: toggle
           - type: tile
+            color: green
             entity: climate.main_bedroom_hoof_slaapkamer_aircon
             name: Main bedroom
             state_content: current_temperature
             tap_action:
               action: more-info
           - type: tile
+            color: green
             entity: climate.dave_en_miks_dave_en_miks_air_conditioner
             name: Mika & Dave
             state_content: current_temperature
             tap_action:
               action: more-info
           - type: tile
+            color: green
             entity: climate.bedroom_kitchen_daniel_aircon
             name: Daniël
             state_content: current_temperature

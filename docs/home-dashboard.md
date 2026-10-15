@@ -9,11 +9,21 @@ The Devices tab provides room controls and statistics at every screen size. The 
 - At 1280px and above, it centers the complete vector plan with live overlays and scales them together to fit the available screen width and height. Resizing the browser or sidebar recalculates the fit.
 - Below 1280px, it shows readable control tiles and statistics, followed by a plan that opens at full size when tapped. It does not compress fixed-size overlay text and controls onto a phone.
 
-Switch icons are gold when on, grey when off, and red for unknown/unavailable states. On/off icons toggle the switch; red icons open details. Both garage-light icons operate the same switch. Pool and geyser have static labels; only the garage controls retain separate state badges. Aircon icons open their controls; temperature badges show the aircon's current_temperature in Celsius, not its target setting.
+Switch icons use the same bright green as the native switch tiles (`--green-color`, with `#4caf50` as fallback) when on, grey when off, and red for unknown/unavailable states. On/off icons toggle the switch; red icons open details. Both garage-light icons operate the same switch. Pool and geyser keep their device names and show separate On/Off badges beside their icons. Both garage icons also have state badges. Missing or unavailable switch states show `-`. Aircon icons open their controls; temperature badges show the aircon's current_temperature in Celsius, not its target setting.
+
+Floor-plan readings show `-` when an entity or value is missing, unknown or unavailable, including temperature attributes. Valid zero readings retain their units. These display elements keep the original entities and open their details when tapped; they do not change sensor states. Switch tiles on Devices and the narrow-screen layout use green when active. Aircon floor-plan icons use green for active modes.
 
 The plan at `/local/floorplans/house-clean.svg` is a simplified redraw of the supplied layout, including the user's room and door corrections. It is a visual dashboard background, not a measured architectural drawing. The main-bedroom door is hinged at the top of its corridor-facing opening so its leaf does not cross the neighboring doorway.
 
+## Weather
+
+`weather.forecast_home` supplies current conditions and temperature. Devices and the narrow-screen Floor plan layout show the native daily forecast card. The desktop floor plan shows the same entity in a compact native current-weather card in the empty top-left area; tap it for details. The local wrapper forwards live Home Assistant updates and leaves weather rendering and forecast retrieval to Home Assistant.
+
+For this update, copy `configuration.yaml`, `dashboards/home-controls.yaml` and `www/viewport-fit-card.js` together. Follow the configuration-check and restart steps below, then hard-refresh the browser. Confirm current weather and daily forecasts load; forecast data is fetched by the native card, not included in the entity-inventory export.
+
 ## Solar and device measurements
+
+The floor-plan solar panel uses a white surface, softly tinted live-reading cells, two wider flow cells, and a six-cell grid for daily totals. Its SVG labels and dashboard overlays share the same layout; copy both `www/floorplans/solar-panel.svg` and `dashboards/home-controls.yaml` together when updating it.
 
 Solar now shows generation, house usage, battery SOC, battery flow and grid flow. Solar today shows generation, house usage, grid import/export and battery charge/discharge. Existing combined-system sensors provide the totals; the dashboard does not sum them again.
 
@@ -63,3 +73,5 @@ Leave all other NAS files in place, including secrets, runtime storage and datab
 
 - https://www.home-assistant.io/integrations/frontend/#loading-extra-javascript
 - https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/
+
+- https://www.home-assistant.io/dashboards/weather-forecast/

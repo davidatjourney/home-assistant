@@ -1,14 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="500" height="340" viewBox="0 0 500 340" role="img" aria-label="Combined solar live readings and daily totals">
-<rect x="1" y="1" width="498" height="338" rx="20" fill="#fff7d6" stroke="#e5cc72" stroke-width="2"/>
-<g font-family="Arial,sans-serif" fill="#172033" font-weight="700">
-<text x="24" y="34" font-size="22">Combined solar</text>
-<text x="24" y="197" font-size="18">Today</text>
-</g>
-<line x1="24" y1="48" x2="476" y2="48" stroke="#e9daa4"/>
-<line x1="24" y1="170" x2="476" y2="170" stroke="#e9daa4"/>
-<g font-family="Arial,sans-serif" font-size="17" fill="#7a622a" text-anchor="middle">
-<text x="83.333" y="71">Solar now</text><text x="250" y="71">House now</text><text x="416.667" y="71">Battery</text>
-<text x="83.333" y="125">Battery flow</text><text x="250" y="125">Grid flow</text>
-<text x="83.333" y="224">Solar generated</text><text x="250" y="224">House used</text><text x="416.667" y="224">Grid imported</text>
-<text x="83.333" y="282">Grid exported</text><text x="250" y="282">Battery charged</text><text x="416.667" y="282">Battery discharged</text>
-</g></svg>
+  <rect x="1" y="1" width="498" height="338" rx="18" fill="#ffffff" stroke="#dce4ec" stroke-width="1.5"/>
+  <g font-family="Arial,sans-serif">
+    <rect x="18" y="16" width="30" height="30" rx="10" fill="#fff4d6"/>
+    <g fill="none" stroke="#c58713" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="33" cy="31" r="4.5"/>
+      <path d="M33 21v2M33 39v2M23 31h2M41 31h2M26 24l1.5 1.5M38.5 36.5L40 38M26 38l1.5-1.5M38.5 25.5L40 24"/>
+    </g>
+    <text x="58" y="37" font-size="19" font-weight="700" fill="#172b40">Combined solar</text>
+    <text x="478" y="35" text-anchor="end" font-size="10" font-weight="700" letter-spacing="1.5" fill="#718096">POWER &amp; ENERGY</text>
+    <!-- Live power: three primary readings and two full-width flow cells. -->
+    <rect x="18" y="56" width="152" height="47" rx="10" fill="#fff8e8"/>
+    <rect x="174" y="56" width="152" height="47" rx="10" fill="#f1f5fa"/>
+    <rect x="330" y="56" width="152" height="47" rx="10" fill="#eef7f0"/>
+    <g font-size="11" font-weight="600" text-anchor="middle">
+      <text x="94" y="73" fill="#8a651b">Solar now</text>
+      <text x="250" y="73" fill="#52677d">House now</text>
+      <text x="406" y="73" fill="#467353">Battery</text>
+    </g>
+    <rect x="18" y="111" width="228" height="45" rx="10" fill="#f6f8fb"/>
+    <rect x="254" y="111" width="228" height="45" rx="10" fill="#f6f8fb"/>
+    <g font-size="10" font-weight="600" fill="#66788b" text-anchor="middle">
+      <text x="132" y="127">BATTERY FLOW</text>
+      <text x="368" y="127">GRID FLOW</text>
+    </g>
+    <text x="20" y="183" font-size="13" font-weight="700" fill="#172b40">Today</text>
+    <line x1="68" y1="179" x2="480" y2="179" stroke="#e7edf3"/>
+    <!-- Daily totals sit in equal-width cells, with room for longer labels. -->
+    <g fill="#f8fafc">
+      <rect x="18" y="194" width="152" height="60" rx="10"/>
+      <rect x="174" y="194" width="152" height="60" rx="10"/>
+      <rect x="330" y="194" width="152" height="60" rx="10"/>
+      <rect x="18" y="262" width="152" height="60" rx="10"/>
+      <rect x="174" y="262" width="152" height="60" rx="10"/>
+      <rect x="330" y="262" width="152" height="60" rx="10"/>
+    </g>
+    <g font-size="11" font-weight="500" fill="#607286" text-anchor="middle">
+      <text x="94" y="214">Solar generated</text>
+      <text x="250" y="214">House used</text>
+      <text x="406" y="214">Grid imported</text>
+      <text x="94" y="282">Grid exported</text>
+      <text x="250" y="282">Battery charged</text>
+      <text x="406" y="282">Battery discharged</text>
+    </g>
+  </g>
+</svg>
