@@ -83,7 +83,13 @@ class HomeReading extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._label = document.createElement("span");
-    this.shadowRoot.append(this._label);
+    const style = document.createElement("style");
+    style.textContent = `
+      :host { line-height: 1.2; font-variant-numeric: tabular-nums; }
+      :host([role="button"]) { cursor: pointer; }
+      :host(:focus-visible) { outline: 2px solid #2563eb; outline-offset: 3px; }
+    `;
+    this.shadowRoot.append(style, this._label);
     this.addEventListener("click", () => {
       if (this._config?.tap_action?.action === "none") return;
       this.dispatchEvent(new CustomEvent("hass-more-info", {
@@ -99,6 +105,10 @@ class HomeReading extends HTMLElement {
   }
 
   setConfig(config) {
+    if (config.precision !== undefined
+      && (!Number.isInteger(config.precision) || config.precision < 0 || config.precision > 6)) {
+      throw new Error("home-reading precision must be an integer between 0 and 6");
+    }
     this._config = config;
     this.title = config.title || config.entity;
     const interactive = config.tap_action?.action !== "none";
@@ -119,9 +129,18 @@ class HomeReading extends HTMLElement {
     const value = config.attribute ? entity?.attributes[config.attribute] : entity?.state;
     const missing = !entity || ["unknown", "unavailable"].includes(entity.state)
       || value == null || ["", "unknown", "unavailable"].includes(value);
-    const reading = missing ? "-" : config.attribute
+    let reading = missing ? "-" : config.attribute
       ? `${value}${config.suffix || ""}`
       : `${this._hass.formatEntityState(entity)}${config.suffix || ""}`;
+    if (!missing && config.precision !== undefined) {
+      const numeric = Number(value);
+      const unit = config.attribute ? config.suffix : entity.attributes.unit_of_measurement;
+      reading = Number.isFinite(numeric) ? new Intl.NumberFormat(
+        this._hass.locale?.language || this._hass.language,
+        { minimumFractionDigits: config.precision, maximumFractionDigits: config.precision },
+      ).format(numeric) + (unit ? `${config.attribute ? "" : " "}${unit}` : "")
+        + (config.attribute ? "" : config.suffix || "") : "-";
+    }
     this._label.textContent = `${config.prefix || ""}${reading}`;
     this.setAttribute("aria-label", `${this.title}: ${this._label.textContent}`);
   }

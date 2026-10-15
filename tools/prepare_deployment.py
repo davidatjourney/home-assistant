@@ -16,10 +16,10 @@ HOME_DASHBOARD_FILES = (
     "dashboards/home-controls.yaml",
     "packages/dashboard_energy.yaml",
     "www/viewport-fit-card.js",
-    "www/floorplans/house-clean.svg",
-    "www/floorplans/solar-panel.svg",
-    "www/floorplans/pool-stats.svg",
-    "www/floorplans/geyser-stats.svg",
+    "www/floorplans/house-clean-layout-v2.svg",
+    "www/floorplans/solar-panel-layout-v2.svg",
+    "www/floorplans/pool-stats-layout-v2.svg",
+    "www/floorplans/geyser-stats-layout-v2.svg",
 )
 TOP_LEVEL = {"configuration.yaml", "automations.yaml", "scripts.yaml", "scenes.yaml"}
 DIRECTORIES = {"packages", "blueprints", "themes", "custom_components", "www", "dashboards"}

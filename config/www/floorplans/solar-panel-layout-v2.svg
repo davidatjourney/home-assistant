@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="204" viewBox="0 0 500 204" role="img" aria-label="Combined solar live readings; open Devices for daily totals">
+  <rect x="1" y="1" width="498" height="202" rx="16" fill="#ffffff" stroke="#dce4ec" stroke-width="1.5"/>
+  <g font-family="Arial,sans-serif">
+    <rect x="18" y="16" width="30" height="30" rx="10" fill="#fff4d6"/>
+    <g fill="none" stroke="#c58713" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="33" cy="31" r="4.5"/>
+      <path d="M33 21v2M33 39v2M23 31h2M41 31h2M26 24l1.5 1.5M38.5 36.5L40 38M26 38l1.5-1.5M38.5 25.5L40 24"/>
+    </g>
+    <text x="58" y="37" font-size="19" font-weight="700" fill="#172b40">Combined solar</text>
+    <text x="478" y="35" text-anchor="end" font-size="10" font-weight="700" letter-spacing="1.5" fill="#607286">LIVE POWER</text>
+    <!-- Live power: three primary readings and two full-width flow cells. -->
+    <rect x="18" y="56" width="152" height="47" rx="10" fill="#fff8e8"/>
+    <rect x="174" y="56" width="152" height="47" rx="10" fill="#f1f5fa"/>
+    <rect x="330" y="56" width="152" height="47" rx="10" fill="#eef7f0"/>
+    <g font-size="11" font-weight="600" text-anchor="middle">
+      <text x="94" y="73" fill="#8a651b">Solar now</text>
+      <text x="250" y="73" fill="#52677d">House now</text>
+      <text x="406" y="73" fill="#467353">Battery</text>
+    </g>
+    <rect x="18" y="111" width="228" height="45" rx="10" fill="#f6f8fb"/>
+    <rect x="254" y="111" width="228" height="45" rx="10" fill="#f6f8fb"/>
+    <g font-size="10" font-weight="600" fill="#66788b" text-anchor="middle">
+      <text x="132" y="127">BATTERY FLOW</text>
+      <text x="368" y="127">GRID FLOW</text>
+    </g>
+    <line x1="18" y1="168" x2="482" y2="168" stroke="#e7edf3"/>
+    <text x="250" y="189" text-anchor="middle" font-size="12" font-weight="600" fill="#52677d">Daily totals on Devices →</text>
+  </g>
+</svg>
