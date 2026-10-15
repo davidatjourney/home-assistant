@@ -9,7 +9,7 @@ The Devices tab provides room controls and statistics at every screen size. The 
 - At 1280px and above, it centers the complete vector plan with live overlays and scales them together to fit the available screen width and height. Resizing the browser or sidebar recalculates the fit.
 - Below 1280px, it shows readable control tiles and statistics, followed by a plan that opens at full size when tapped. It does not compress fixed-size overlay text and controls onto a phone.
 
-Switch icons use the same bright green as the native switch tiles (`--green-color`, with `#4caf50` as fallback) when on, grey when off, and red for unknown/unavailable states. On/off icons toggle the switch; red icons open details. Both garage-light icons operate the same switch. Pool and geyser keep their device names and show separate On/Off badges beside their icons. Both garage icons also have state badges. Missing or unavailable switch states show `-`. Aircon icons open their controls; temperature badges show the aircon's current_temperature in Celsius, not its target setting.
+Floor-plan switch controls use a solid bright green (`#22c55e`) circle with a white icon when on, grey when off, and red for unknown/unavailable states. The icon color is set through `--state-icon-color` so Home Assistant’s default icon color does not override it. The Pool name sits below its circle with a 12px gap at the plan’s base size. The geyser switch, status, power, and daily energy share a compact white panel above the bathroom, leaving the Stoep clear. On/off icons toggle the switch; red icons open details. Both garage-light icons operate the same switch. Pool and geyser keep their device names and show separate On/Off statuses near their icons. Both garage icons also have state badges. Missing or unavailable switch states show `-`. Aircon icons open their controls; temperature badges show the aircon's current_temperature in Celsius, not its target setting.
 
 Floor-plan readings show `-` when an entity or value is missing, unknown or unavailable, including temperature attributes. Valid zero readings retain their units. These display elements keep the original entities and open their details when tapped; they do not change sensor states. Switch tiles on Devices and the narrow-screen layout use green when active. Aircon floor-plan icons use green for active modes.
 
@@ -29,7 +29,7 @@ Solar now shows generation, house usage, battery SOC, battery flow and grid flow
 
 The new `sensor.home_dashboard_battery_flow` and `sensor.home_dashboard_grid_flow` interpret the same sign conventions as the existing Sunsynk flow card: battery negative means charging, battery positive means discharging; grid positive means importing, grid negative means exporting. Zero is Idle. Invalid or missing input makes the derived sensor unavailable. Magnitudes at or above 1000 W display in kW. Numeric power remains available on Devices.
 
-Pool power uses `sensor.pool_power`; pool daily energy reuses `sensor.solar_pool_energy_today`, defined by the existing solar_controller package. Cumulative pool energy is not shown as a daily total.
+Pool power uses `sensor.pool_power`; pool daily energy reuses `sensor.solar_pool_energy_today`, defined by the existing solar_controller package. Both readings sit inside the lower part of the pool, below its control and name, instead of in a separate panel beneath the pool. Cumulative pool energy is not shown as a daily total.
 
 `packages/dashboard_energy.yaml` creates `sensor.geyser_energy_today` from `sensor.geyser_total_energy`. Its first day is partial, and usage before activation is not reconstructed. Verify that the total-energy source increases when the geyser consumes energy: its exported reading was zero. Verify the three newly created sensor IDs after deployment.
 
@@ -75,3 +75,7 @@ Leave all other NAS files in place, including secrets, runtime storage and datab
 - https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/
 
 - https://www.home-assistant.io/dashboards/weather-forecast/
+
+For the brighter switch controls and label-spacing fix, overwrite `dashboards/home-controls.yaml` and `www/floorplans/house-clean.svg` together, then reload the dashboard. The plan URL includes a cache version for the changed labels. Verify the Pool and Geyser labels clear their circles and active switches show solid green with white icons.
+
+For the consolidated geyser panel, copy `dashboards/home-controls.yaml`, `www/floorplans/geyser-stats.svg`, and `www/floorplans/house-clean.svg` together, then hard-refresh the dashboard. The panel background appears before its interactive controls so the switch remains visible and usable.

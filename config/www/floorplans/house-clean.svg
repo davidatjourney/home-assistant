@@ -44,9 +44,7 @@
 <text x="994" y="253">Workshop</text><text x="1010" y="390" font-size="19">Utility room</text>
 </g>
 <g font-family="Arial,sans-serif" font-size="15" font-weight="600" text-anchor="middle" fill="#475569">
-<rect x="109" y="968" width="46" height="24" rx="6" fill="#ffffff"/>
-<text x="132" y="985">Pool</text>
-<rect x="507" y="398" width="64" height="24" rx="6" fill="#ffffff"/>
-<text x="539" y="415">Geyser</text>
+<rect x="109" y="985" width="46" height="24" rx="6" fill="#ffffff"/>
+<text x="132" y="1002">Pool</text>
 </g>
 </svg>

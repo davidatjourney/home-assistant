@@ -231,7 +231,7 @@ views:
         height: 1140
         card:
           type: picture-elements
-          image: /local/floorplans/house-clean.svg
+          image: /local/floorplans/house-clean.svg?v=3
           elements:
           - type: custom:home-weather
             entity: weather.forecast_home
@@ -335,12 +335,13 @@ views:
               style:
                 left: 80.6685%
                 top: 76.2692%
-                background: rgba(76, 175, 80, 0.2)
+                background: '#22c55e'
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: 'var(--green-color, #4caf50)'
+                color: '#ffffff'
+                --state-icon-color: '#ffffff'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -364,6 +365,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#64748b'
+                --state-icon-color: '#64748b'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -389,6 +391,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
+                --state-icon-color: '#991b1b'
           - type: custom:home-reading
             entity: switch.garage_ligte_switch_1
             title: Device switch state
@@ -420,12 +423,13 @@ views:
               style:
                 left: 10.0604%
                 top: 70.2193%
-                background: rgba(76, 175, 80, 0.2)
+                background: '#22c55e'
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: 'var(--green-color, #4caf50)'
+                color: '#ffffff'
+                --state-icon-color: '#ffffff'
           - type: conditional
             conditions:
             - entity: switch.pool_switch_1
@@ -449,6 +453,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#64748b'
+                --state-icon-color: '#64748b'
           - type: conditional
             conditions:
             - entity: switch.pool_switch_1
@@ -474,6 +479,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
+                --state-icon-color: '#991b1b'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -491,12 +497,13 @@ views:
               style:
                 left: 94.7901%
                 top: 76.2692%
-                background: rgba(76, 175, 80, 0.2)
+                background: '#22c55e'
                 border-radius: 50%
                 padding: 12px
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
-                color: 'var(--green-color, #4caf50)'
+                color: '#ffffff'
+                --state-icon-color: '#ffffff'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -520,6 +527,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#64748b'
+                --state-icon-color: '#64748b'
           - type: conditional
             conditions:
             - entity: switch.garage_ligte_switch_1
@@ -545,6 +553,7 @@ views:
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
+                --state-icon-color: '#991b1b'
           - type: custom:home-reading
             entity: switch.garage_ligte_switch_1
             title: Device switch state
@@ -559,6 +568,17 @@ views:
               color: '#475569'
               border-radius: 6px
               padding: 2px 5px
+          - type: image
+            image: /local/floorplans/geyser-stats.svg?v=2
+            aspect_ratio: '220:146'
+            filter: none
+            tap_action:
+              action: none
+            style:
+              left: 46.7568%
+              top: 8.1579%
+              width: 19.8198%
+              pointer-events: none
           - type: conditional
             conditions:
             - entity: switch.geyser_switch_1
@@ -574,14 +594,15 @@ views:
               hold_action:
                 action: more-info
               style:
-                left: 46.7766%
-                top: 20.1693%
-                background: rgba(76, 175, 80, 0.2)
+                left: 40.4505%
+                top: 7.5439%
+                background: '#22c55e'
                 border-radius: 50%
-                padding: 12px
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                padding: 8px
+                box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12)
                 --mdc-icon-size: 28px
-                color: 'var(--green-color, #4caf50)'
+                color: '#ffffff'
+                --state-icon-color: '#ffffff'
           - type: conditional
             conditions:
             - entity: switch.geyser_switch_1
@@ -597,14 +618,15 @@ views:
               hold_action:
                 action: more-info
               style:
-                left: 46.7766%
-                top: 20.1693%
+                left: 40.4505%
+                top: 7.5439%
                 background: '#f1f5f9'
                 border-radius: 50%
-                padding: 12px
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                padding: 8px
+                box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12)
                 --mdc-icon-size: 28px
                 color: '#64748b'
+                --state-icon-color: '#64748b'
           - type: conditional
             conditions:
             - entity: switch.geyser_switch_1
@@ -622,25 +644,26 @@ views:
               hold_action:
                 action: more-info
               style:
-                left: 46.7766%
-                top: 20.1693%
+                left: 40.4505%
+                top: 7.5439%
                 background: '#fee2e2'
                 border-radius: 50%
-                padding: 12px
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+                padding: 8px
+                box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12)
                 --mdc-icon-size: 28px
                 color: '#991b1b'
+                --state-icon-color: '#991b1b'
           - type: custom:home-reading
             entity: switch.geyser_switch_1
             title: Geyser switch state
             tap_action:
               action: more-info
             style:
-              left: 52.4252%
-              top: 20.1693%
+              left: 40.4505%
+              top: 12.0175%
               font-size: 12px
               font-weight: '600'
-              background: '#ffffff'
+              background: transparent
               color: '#475569'
               border-radius: 6px
               padding: 2px 5px
@@ -876,28 +899,6 @@ views:
               border-radius: 10px
               padding: 4px 6px
               box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
-          - type: image
-            image: /local/floorplans/pool-stats.svg
-            aspect_ratio: '2:1'
-            filter: none
-            tap_action:
-              action: none
-            style:
-              left: 10.0604%
-              top: 94.3246%
-              width: 18.0757%
-              pointer-events: none
-          - type: image
-            image: /local/floorplans/geyser-stats.svg
-            aspect_ratio: '2:1'
-            filter: none
-            tap_action:
-              action: none
-            style:
-              left: 46.7766%
-              top: 8.6193%
-              width: 18.0757%
-              pointer-events: none
           - type: custom:home-reading
             entity: sensor.pool_power
             title: Pool power now
@@ -906,12 +907,13 @@ views:
               action: more-info
             style:
               left: 10.0604%
-              top: 94.2366%
+              top: 80.0000%
               color: '#0f172a'
               font-size: 14px
               font-weight: '600'
               background: transparent
               padding: '0'
+              white-space: nowrap
           - type: custom:home-reading
             entity: sensor.solar_pool_energy_today
             title: Pool energy today
@@ -920,40 +922,41 @@ views:
               action: more-info
             style:
               left: 10.0604%
-              top: 96.8765%
+              top: 82.8070%
               color: '#0f172a'
               font-size: 14px
               font-weight: '600'
               background: transparent
               padding: '0'
+              white-space: nowrap
           - type: custom:home-reading
             entity: sensor.geyser_power
             title: Geyser power now
-            prefix: 'Now: '
             tap_action:
               action: more-info
             style:
-              left: 46.7766%
-              top: 8.5313%
+              left: 50.0000%
+              top: 7.1930%
               color: '#0f172a'
               font-size: 14px
               font-weight: '600'
               background: transparent
               padding: '0'
+              white-space: nowrap
           - type: custom:home-reading
             entity: sensor.geyser_energy_today
             title: Geyser energy today
-            prefix: 'Today: '
             tap_action:
               action: more-info
             style:
-              left: 46.7766%
-              top: 11.1713%
+              left: 50.0000%
+              top: 11.4035%
               color: '#0f172a'
               font-size: 14px
               font-weight: '600'
               background: transparent
               padding: '0'
+              white-space: nowrap
     - type: conditional
       conditions:
       - condition: screen
@@ -1060,7 +1063,7 @@ views:
           - entity: sensor.geyser_energy_today
             name: Energy today
         - type: picture
-          image: /local/floorplans/house-clean.svg
+          image: /local/floorplans/house-clean.svg?v=3
           alt_text: House floor plan; tap to enlarge
           tap_action:
             action: url
